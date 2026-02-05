@@ -1,3 +1,5 @@
+//Define this because some VC runtimes decided that they dont need to version anymore
+//https://stackoverflow.com/questions/78598141/first-stdmutexlock-crashes-in-application-built-with-latest-visual-studio
 #define _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR
 
 #include <msclr/marshal.h>
@@ -7,93 +9,87 @@
 
 #define UDTC_DATA_CAST(object, type, check, dst) \
 	if(type == check::typeid) \
-		return SIPlusCpp::text::make_data(ctx.marshal_as<dst>(safe_cast<check^>(object)));
+		return SIPlusCpp::make_data(ctx.marshal_as<dst>(safe_cast<check^>(object)));
 #define UDTC_DATA_CAST_V(object, type, check, dst) \
 	if(type == check::typeid) \
-		return SIPlusCpp::text::make_data(safe_cast<check>(object));
+		return SIPlusCpp::make_data<dst>(safe_cast<check>(object));
 
-SIPlusCpp::text::UnknownDataTypeContainer MakeData(System::Object^ object) {
-	msclr::interop::marshal_context ctx;
-	auto type = object->GetType();
-
-	UDTC_DATA_CAST(object, type, System::String, std::string);
-	UDTC_DATA_CAST_V(object, type, System::Char, long);
-	UDTC_DATA_CAST_V(object, type, System::Byte, long);
-	UDTC_DATA_CAST_V(object, type, System::Int16, long);
-	UDTC_DATA_CAST_V(object, type, System::UInt16, long);
-	UDTC_DATA_CAST_V(object, type, System::Int32, long);
-	UDTC_DATA_CAST_V(object, type, System::UInt32, long);
-	UDTC_DATA_CAST_V(object, type, System::Int64, long);
-	UDTC_DATA_CAST_V(object, type, System::UInt64, long);
-	UDTC_DATA_CAST_V(object, type, System::Single, double);
-	UDTC_DATA_CAST_V(object, type, System::Double, double);
-	
-	gcroot<System::Object^> root = object;
-	return SIPlusCpp::text::make_data(root);
-}
-
-System::Object^ ToObject(const SIPlusCpp::text::UnknownDataTypeContainer& container) {
-	if (container.is<gcroot<System::Object^>>()) {
-		return container.as<gcroot<System::Object^>>();
-	}
-	else if (SIPlusCpp::text::is_numeric(container.type)) {
-		if (container.is<double>()) {
-			return container.as<double>();
-		}
-		else if (container.is<float>()) {
-			return container.as<float>();
-		}
-		else if (container.is<float>()) {
-			return container.as<float>();
-		}
-		else if (container.is<float>()) {
-			return container.as<float>();
-		}
-		else if (container.is<float>()) {
-			return container.as<float>();
-		}
-		else {
-			throw std::runtime_error{
-				SIPlusCpp::util::to_string(
-					"Unsupported numeric type ", SIPlusCpp::text::get_type_name(container.type)
-				)
-			};
-		}
-	}
-	else if (container.is<std::string>()) {
-		return gcnew System::String(container.as<std::string>().c_str());
-	}
-	else if(container.is<std::vector<SIPlusCpp::text::UnknownDataTypeContainer>>()) {
-		auto list = gcnew System::Collections::Generic::List<System::Object^>(0);
-		auto& vec = container.as<std::vector<SIPlusCpp::text::UnknownDataTypeContainer>>();
-
-		for (auto& item : vec) {
-			list->Add(ToObject(item));
-		}
-
-		return list;
-	}
-
-	throw gcnew System::InvalidCastException(
-		System::String::Format(
-			"Could not marshal {} back into System.Object",
-			gcnew System::String(SIPlusCpp::text::get_type_name(container.type).c_str())
-		)
-	);
-}
+SIPlusCpp::UnknownDataTypeContainer MakeData(System::Object ^ object);
 
 namespace SIPlusCpp {
 
-class CSharpObjectAccessor : public text::Accessor {
-	virtual text::UnknownDataTypeContainer access(const text::UnknownDataTypeContainer& value, const std::string& name) override;
-	virtual bool can_access(const text::UnknownDataTypeContainer& value) override;
+class IEnumerableIterator : public text::Iterator {
+public:
+	IEnumerableIterator(System::Collections::IEnumerator^ enumerator);
+
+	bool more() override;
+	void next() override;
+	UnknownDataTypeContainer current() override;
+
+private:
+	bool more_;
+	UnknownDataTypeContainer current_ = MakeData(nullptr);
+	UnknownDataTypeContainer between_ = MakeData(nullptr);
+	gcroot<System::Collections::IEnumerator^> enumerator_;
 };
 
-text::UnknownDataTypeContainer
-CSharpObjectAccessor::access(const text::UnknownDataTypeContainer& value, const std::string& name) {
+IEnumerableIterator::IEnumerableIterator(System::Collections::IEnumerator^ enumerator) {
+	enumerator_ = enumerator;
+	more_ = enumerator_->MoveNext();
+	if (more_) {
+		between_ = MakeData(enumerator->Current);
+	}
+}
+
+bool IEnumerableIterator::more() {
+	return more_;
+}
+
+void IEnumerableIterator::next() {
+	if (!more_) {
+		throw std::runtime_error{ "next() called after iterator finished" };
+	}
+
+	current_ = between_;
+	more_ = enumerator_->MoveNext();
+	if (more_) {
+		between_ = MakeData(enumerator_->Current);
+	}
+}
+
+UnknownDataTypeContainer IEnumerableIterator::current() {
+	return current_;
+}
+
+public struct NETType : SIPlusCpp::TypeInfo {
+	//We have defined this but the is/as utility functions do not work since CII/CLI does not support 
+	//using managed types in concepts for some reason. They try to explain it in this article, but I 
+	//really dont see why it cant be supported... Blame Microslop
+	//(Its not like we are using the managed type directly in the concept... Its just *there*)
+	//https://devblogs.microsoft.com/cppblog/cpp20-support-comes-to-cpp-cli/#concepts
+	using data_type = msclr::gcroot<System::Object^>;
+
+	std::string name() const override {
+		return ".NET Object";
+	}
+
+	bool is_iterable(const SIPlusCpp::UnknownDataTypeContainer& data) const override {
+		return (*reinterpret_cast<data_type*>(data.ptr))
+			->GetType()
+			->IsAssignableTo(System::Collections::IEnumerable::typeid);
+	}
+
+	SIPlusCpp::UnknownDataTypeContainer access(const SIPlusCpp::UnknownDataTypeContainer& data, const std::string& name) const override;
+	std::unique_ptr<SIPlusCpp::text::Iterator> iterate(const SIPlusCpp::UnknownDataTypeContainer& data) const override;
+};
+
+SIPLUS_DEFINE_TYPE_INFO(msclr::gcroot<System::Object^>, NETType);
+
+UnknownDataTypeContainer
+NETType::access(const UnknownDataTypeContainer& value, const std::string& name) const {
 	System::String^ strName = gcnew System::String(name.c_str());
-	System::Object^ object = value.as<gcroot<System::Object^>>();
-	
+	System::Object^ object = *reinterpret_cast<NETType::data_type*>(value.ptr);
+
 	auto type = object->GetType();
 	auto prop = type->GetProperty(strName);
 	if (prop != nullptr) {
@@ -114,76 +110,75 @@ CSharpObjectAccessor::access(const text::UnknownDataTypeContainer& value, const 
 	};
 }
 
-bool CSharpObjectAccessor::can_access(const text::UnknownDataTypeContainer& value) {
-	return value.is<gcroot<System::Object^>>();
-}
-
-class IEnumerableIterator : public text::Iterator {
-public:
-	IEnumerableIterator(System::Collections::IEnumerator^ enumerator);
-
-	bool more() override;
-	void next() override;
-	text::UnknownDataTypeContainer current() override;
-
-private:
-	bool more_;
-	text::UnknownDataTypeContainer current_ = MakeData(nullptr);
-	text::UnknownDataTypeContainer between_ = MakeData(nullptr);
-	gcroot<System::Collections::IEnumerator^> enumerator_;
-};
-
-IEnumerableIterator::IEnumerableIterator(System::Collections::IEnumerator^ enumerator) {
-	enumerator_ = enumerator;
-	more_ = enumerator_->MoveNext();
-	if (more_) {
-		between_ = MakeData(enumerator->Current);
-	}
-}
-
-bool IEnumerableIterator::more() {
-	return more_;
-}
-
-void IEnumerableIterator::next() {
-	if (!more_) {
-		throw std::runtime_error{"next() called after iterator finished"};
-	}
-
-	current_ = between_;
-	more_ = enumerator_->MoveNext();
-	if (more_) {
-		between_ = MakeData(enumerator_->Current);
-	}
-}
-
-text::UnknownDataTypeContainer IEnumerableIterator::current() {
-	return current_;
-}
-
-
-class IEnumerableIteratorProvider : public text::IteratorProvider {
-public:
-	std::unique_ptr<text::Iterator> iterator(const text::UnknownDataTypeContainer& value) override;
-	bool can_iterate(const text::UnknownDataTypeContainer& value) override;
-};
-
-std::unique_ptr<text::Iterator> IEnumerableIteratorProvider::iterator(const text::UnknownDataTypeContainer& container) {
-	System::Object^ value = container.as<gcroot<System::Object^>>();
+std::unique_ptr<text::Iterator> NETType::iterate(const UnknownDataTypeContainer& container) const {
+	System::Object^ value = *reinterpret_cast<NETType::data_type*>(container.ptr);
 	auto enumerable = safe_cast<System::Collections::IEnumerable^>(value);
-
+	
 	return std::unique_ptr<text::Iterator>{
 		new IEnumerableIterator(enumerable->GetEnumerator())
 	};
 }
 
-bool IEnumerableIteratorProvider::can_iterate(const text::UnknownDataTypeContainer& container) {
-	if (!container.is<gcroot<System::Object^>>()) { return false; }
-	auto type = container.as<gcroot<System::Object^>>()->GetType();
-	return System::Collections::IEnumerable::typeid->IsAssignableFrom(type);
+} /* SIPlusCpp */
+
+SIPlusCpp::UnknownDataTypeContainer MakeData(System::Object^ object) {
+	msclr::interop::marshal_context ctx;
+	auto type = object->GetType();
+
+	UDTC_DATA_CAST(object, type, System::String, std::string);
+	UDTC_DATA_CAST_V(object, type, System::Char, long);
+	UDTC_DATA_CAST_V(object, type, System::Byte, long);
+	UDTC_DATA_CAST_V(object, type, System::Int16, long);
+	UDTC_DATA_CAST_V(object, type, System::UInt16, long);
+	UDTC_DATA_CAST_V(object, type, System::Int32, long);
+	UDTC_DATA_CAST_V(object, type, System::UInt32, long);
+	UDTC_DATA_CAST_V(object, type, System::Int64, long);
+	UDTC_DATA_CAST_V(object, type, System::UInt64, long);
+	UDTC_DATA_CAST_V(object, type, System::Single, double);
+	UDTC_DATA_CAST_V(object, type, System::Double, double);
+
+	auto ptr = new typename gcroot<System::Object^>{ object };
+	return SIPlusCpp::UnknownDataTypeContainer{
+		std::make_shared<SIPlusCpp::NETType>(),
+		reinterpret_cast<void*>(ptr),
+		[ptr](void*) { delete ptr; }
+	};
 }
 
-} /* SIPlusCpp */
+System::Object^ ToObject(const SIPlusCpp::UnknownDataTypeContainer& container) {
+	using namespace SIPlusCpp::types;
+
+	if (container.is<SIPlusCpp::NETType>()) {
+		return *reinterpret_cast<SIPlusCpp::NETType::data_type*>(container.ptr);
+	}
+	else if (container.is<FloatType>()) {
+		return container.as<FloatType>();
+	}
+	else if (container.is<IntegerType>()) {
+		return container.as<IntegerType>();
+	}
+	else if (container.is<StringType>()) {
+		return gcnew System::String(container.as<StringType>().c_str());
+	}
+	else if(container.is<ArrayType>()) {
+		auto list = gcnew System::Collections::Generic::List<System::Object^>(0);
+		auto& vec = container.as<ArrayType>();
+
+		for (auto& item : vec) {
+			list->Add(ToObject(item));
+		}
+
+		return list;
+	}
+
+	throw gcnew System::InvalidCastException(
+		System::String::Format(
+			"Could not marshal {} back into System.Object",
+			gcnew System::String(container.type->name().c_str())
+		)
+	);
+}
+
 
 namespace SIPlus {
 
@@ -245,7 +240,7 @@ class ManagedValueRetrieverWrapper : public SIPlusCpp::text::ValueRetriever {
 public:
 	ManagedValueRetrieverWrapper(IValueRetriever^ retriever);
 
-	SIPlusCpp::text::UnknownDataTypeContainer retrieve(SIPlusCpp::InvocationContext& value) const override;
+	SIPlusCpp::UnknownDataTypeContainer retrieve(SIPlusCpp::InvocationContext& value) const override;
 
 private:
 	gcroot<IValueRetriever^> retriever_;
@@ -253,7 +248,7 @@ private:
 
 ManagedValueRetrieverWrapper::ManagedValueRetrieverWrapper(IValueRetriever^ retriever) : retriever_(retriever) {}
 
-SIPlusCpp::text::UnknownDataTypeContainer ManagedValueRetrieverWrapper::retrieve(SIPlusCpp::InvocationContext& value) const {
+SIPlusCpp::UnknownDataTypeContainer ManagedValueRetrieverWrapper::retrieve(SIPlusCpp::InvocationContext& value) const {
 	auto ctx = gcnew InvocationContext(value.shared_from_this());
 	return MakeData(retriever_->Retrieve(ctx));
 }
@@ -407,10 +402,6 @@ void SIPlusParserContext::AddFunction(System::String^ name, IFunction^ function)
 
 SIPlusParser::SIPlusParser() {
 	parser_ = new SIPlusCpp::Parser();
-	auto a = reinterpret_cast<std::unique_ptr<SIPlusCpp::ParserImpl>*>(parser_); // FUCKING EVIL
-	std::cout << a->get() << std::endl;
-	parser_->context().emplace_accessor<SIPlusCpp::CSharpObjectAccessor>();
-	parser_->context().emplace_iterator<SIPlusCpp::IEnumerableIteratorProvider>();
 }
 
 SIPlusParser::~SIPlusParser() {

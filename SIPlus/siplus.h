@@ -1,5 +1,5 @@
 #pragma once
-#include <siplus/siplus.h>
+#include <siplus/siplus.hxx>
 
 namespace SIPlus {
 
