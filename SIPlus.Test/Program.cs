@@ -1,23 +1,28 @@
-﻿using SIPlus.Text;
+﻿using SIPlus;
+using CSIPlus;
 using System.Diagnostics;
 
 namespace SIPlus.Test
 {
     internal class TestFuncValueRetriever : IValueRetriever {
-        public object Retrieve(InvocationContext context) {
+        public object? Retrieve(InvocationContext value) {
             return "test";
         }
+
+        public void Dispose() { }
     }
 
     internal class TestFunction : IFunction {
-        public IValueRetriever Value(IValueRetriever parent, IEnumerable<IValueRetriever> parameters) {
+        public IValueRetriever Value(IValueRetriever? parent, List<IValueRetriever> parameters) {
             return new TestFuncValueRetriever();
         }
+
+        public void Dispose() { }
     }
 
     internal class Program {
         static void Main(string[] args) {
-            SIPlusParser parser = new();
+            Parser parser = new();
             parser.Context().AddFunction("test", new TestFunction());
 
             parser.TestInterpolation("Base", "Hello, { .test }", new { test = "World" }, "Hello, World");
@@ -29,19 +34,19 @@ namespace SIPlus.Test
 
     public static class ParserExtensions {
         public static void TestInterpolation(
-            this SIPlusParser parser,
+            this Parser parser,
             string name,
             string text,
             object defaultVal,
             string expected
         ) {
-            var context = parser.Context().Builder().UseDefault(defaultVal).Build();
+            var context = parser.Context().Builder().Default(defaultVal).Build();
 
             TestInterpolation(parser, name, text, context, expected);
         }
           
         public static void TestInterpolation(
-            this SIPlusParser parser, 
+            this Parser parser, 
             string name,
             string text, 
             InvocationContext context,
@@ -67,19 +72,19 @@ namespace SIPlus.Test
         }
 
         public static void TestExpression(
-            this SIPlusParser parser,
+            this Parser parser,
             string name,
             string text,
             object defaultVal,
             object expected
         ) {
-            var context = parser.Context().Builder().UseDefault(defaultVal).Build();
+            var context = parser.Context().Builder().Default(defaultVal).Build();
 
             TestExpression(parser, name, text, context, expected);
         }
           
         public static void TestExpression(
-            this SIPlusParser parser, 
+            this Parser parser, 
             string name,
             string text, 
             InvocationContext context,

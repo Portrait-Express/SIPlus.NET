@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	<PublishAot>true</PublishAot>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+	<Target Name="GenerateSiplusLib" BeforeTargets="BeforeCompile" Outputs="$(OutDir)siplus.dll">
+		<PropertyGroup>
+			<CMakeArguments>-DCMAKE_BUILD_TYPE=$(Configuration) -DSIPLUS_BUILD_TESTS=OFF -DSIPLUS_NAMESPACE=SIPlusCpp -DWITH_STATIC_CRT=Off -DSIPLUS_BUILD_EXAMPLES=OFF -DBUILD_SHARED_LIBS=ON</CMakeArguments>
+		</PropertyGroup>
+
+		<Exec Command="if not exist siplus.build mkdir siplus.build" WorkingDirectory="$(OutDir)" ConsoleToMsBuild="true" />
+		<Exec Command="cmake $(ProjectDir)..\dependencies\siplus $(CMakeArguments)" WorkingDirectory="$(OutDir)siplus.build" ConsoleToMsBuild="true" />
+		<Exec Command="cmake --build . --config $(Configuration)" WorkingDirectory="$(OutDir)siplus.build" ConsoleToMsBuild="true" />
+		<Exec Command="cp $(Configuration)\siplus.dll ..\siplus.dll" WorkingDirectory="$(OutDir)siplus.build" ConsoleToMsBuild="true" />
+	</Target>
+	<ItemGroup>
+		<Content Include="$(OutDir)siplus.dll">
+			<Link>siplus.dll</Link>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+</Project>

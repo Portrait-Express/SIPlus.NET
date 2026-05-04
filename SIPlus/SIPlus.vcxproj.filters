@@ -24,4 +24,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\dependencies\siplus\SiplusSwig.i" />
+  </ItemGroup>
 </Project>
