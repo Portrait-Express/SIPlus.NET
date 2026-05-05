@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,7 +15,9 @@ namespace CSIPlus.Internal.Extensions {
             }
 
             try {
-                *result = Util.MakeData(retriever.Retrieve(new InvocationContext(new(context))));
+                var handle = Util.MakeData(retriever.Retrieve(new InvocationContext(new(context))));
+                *result = handle.DangerousGetHandle();
+                handle.DangerousReleaseHandle();
                 return SIPlusNative.siplus_error_set((int)SIPlusNative.Errors.SIPLUS_OK, "");
             } catch (Exception ex) {
                 return SIPlusNative.siplus_error_set((int)SIPlusNative.Errors.SIPLUS_INVOKE_ERROR, ex.Message);

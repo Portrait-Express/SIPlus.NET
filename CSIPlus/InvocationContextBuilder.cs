@@ -15,7 +15,7 @@ namespace CSIPlus {
 
         public InvocationContextBuilder Default(object? data) {
             Util.AssertSuccess(
-                SIPlusNative.siplus_icbuilder_default(Handle, new(Util.MakeData(data)))
+                SIPlusNative.siplus_icbuilder_default(Handle, Util.MakeData(data))
             );
 
             return this;
@@ -23,7 +23,7 @@ namespace CSIPlus {
 
         public InvocationContextBuilder With(string name, object? data) {
             Util.AssertSuccess(
-                SIPlusNative.siplus_icbuilder_with(Handle, name, new(Util.MakeData(data)))
+                SIPlusNative.siplus_icbuilder_with(Handle, name, Util.MakeData(data))
             );
 
             return this;

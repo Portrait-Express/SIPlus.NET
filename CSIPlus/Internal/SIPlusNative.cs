@@ -58,7 +58,7 @@ namespace CSIPlus
 
             protected override bool Release()
             {
-                siplus_context_delete(handle);
+                siplus_context_unref(handle);
                 return true;
             }
         }
@@ -159,7 +159,7 @@ namespace CSIPlus
 
             protected override bool Release()
             {
-                siplus_type_delete(handle);
+                siplus_type_unref(handle);
                 return true;
             }
         }
@@ -277,8 +277,8 @@ namespace CSIPlus
         [LibraryImport("siplus.dll", EntryPoint = "siplus_context_builder", StringMarshalling = StringMarshalling.Utf8)]
         internal static unsafe partial int siplus_context_builder(out InvocationContextBuilderHandle builder, ContextHandle context);
 
-        [LibraryImport("siplus.dll", EntryPoint = "siplus_context_delete", StringMarshalling = StringMarshalling.Utf8)]
-        internal static unsafe partial void siplus_context_delete(IntPtr context);
+        [LibraryImport("siplus.dll", EntryPoint = "siplus_context_unref", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial void siplus_context_unref(IntPtr context);
 
 
 
@@ -322,8 +322,8 @@ namespace CSIPlus
             SIPlusTypeIsIterable is_iterable, SIPlusTypeAccess access,
             SIPlusTypeIterate iterate, SIPlusTypeDeleter deleter);
 
-        [LibraryImport("siplus.dll", EntryPoint = "siplus_type_delete", StringMarshalling = StringMarshalling.Utf8)]
-        internal static unsafe partial void siplus_type_delete(IntPtr type);
+        [LibraryImport("siplus.dll", EntryPoint = "siplus_type_unref", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial void siplus_type_unref(IntPtr type);
 
 
 

@@ -40,7 +40,10 @@ namespace SIPlus.Test
             object defaultVal,
             string expected
         ) {
-            var context = parser.Context().Builder().Default(defaultVal).Build();
+            var context = parser.Context()
+                .Builder()
+                .Default(defaultVal)
+                .Build();
 
             TestInterpolation(parser, name, text, context, expected);
         }

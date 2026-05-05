@@ -15,11 +15,22 @@
 		<Exec Command="if not exist siplus.build mkdir siplus.build" WorkingDirectory="$(OutDir)" ConsoleToMsBuild="true" />
 		<Exec Command="cmake $(ProjectDir)..\dependencies\siplus $(CMakeArguments)" WorkingDirectory="$(OutDir)siplus.build" ConsoleToMsBuild="true" />
 		<Exec Command="cmake --build . --config $(Configuration)" WorkingDirectory="$(OutDir)siplus.build" ConsoleToMsBuild="true" />
-		<Exec Command="cp $(Configuration)\siplus.dll ..\siplus.dll" WorkingDirectory="$(OutDir)siplus.build" ConsoleToMsBuild="true" />
+		<Exec Command="copy $(Configuration)\siplus.dll ..\siplus.dll" WorkingDirectory="$(OutDir)siplus.build" ConsoleToMsBuild="true" />
+		<Exec Command="if exist $(Configuration)\siplus.pdb copy $(Configuration)\siplus.pdb ..\siplus.pdb" WorkingDirectory="$(OutDir)siplus.build" ConsoleToMsBuild="true" />
+	</Target>
+	<Target Name="CleanupGenerated" BeforeTargets="Clean">
+		<ItemGroup>
+			<CleanDir Include="$(OutDir)siplus.build" />
+		</ItemGroup>
+		<RemoveDir Directories="@(CleanDir)" />
 	</Target>
 	<ItemGroup>
 		<Content Include="$(OutDir)siplus.dll">
 			<Link>siplus.dll</Link>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="$(OutDir)siplus.pdb">
+			<Link>siplus.pdb</Link>
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>

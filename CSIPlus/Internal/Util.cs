@@ -1,11 +1,5 @@
 ﻿using CSIPlus.Internal.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CSIPlus.Internal
 {
@@ -33,36 +27,20 @@ namespace CSIPlus.Internal
             }
         }
 
-        private static unsafe nint MakeInt<T>(T data) {
-            if (data is long l) {
-                var a = SIPlusNative.siplus_data_make_int(l);
-                a.DangerousRelease();
-                return a.DangerousGetHandle();
-            } else {
-                throw new InvalidCastException("data was not castable to long");
-            }
+        private static unsafe SIPlusNative.DataContainerHandle MakeInt<T>(T data) {
+            return SIPlusNative.siplus_data_make_int(Convert.ToInt64(data));
         }
 
-        private static unsafe nint MakeFloat<T>(T data) {
-            if (data is long l) {
-                var a = SIPlusNative.siplus_data_make_float(l);
-                a.DangerousRelease();
-                return a.DangerousGetHandle();
-            } else {
-                throw new InvalidCastException("data was not castable to long");
-            }
+        private static unsafe SIPlusNative.DataContainerHandle MakeFloat<T>(T data) {
+            return SIPlusNative.siplus_data_make_float(Convert.ToDouble(data));
         }
 
-        private static unsafe nint MakeString(string data) {
-            var a = SIPlusNative.siplus_data_make_string(data);
-            a.DangerousRelease();
-            return a.DangerousGetHandle();
+        private static unsafe SIPlusNative.DataContainerHandle MakeString(string data) {
+            return SIPlusNative.siplus_data_make_string(data);
         }
 
-        private static unsafe nint MakeBool(bool data) {
-            var a = SIPlusNative.siplus_data_make_bool(data ? 1 : 0);
-            a.DangerousRelease();
-            return a.DangerousGetHandle();
+        private static unsafe SIPlusNative.DataContainerHandle MakeBool(bool data) {
+            return SIPlusNative.siplus_data_make_bool(data ? 1 : 0);
         }
 
         private static void ObjectDataDeleter(nint data) {
@@ -71,7 +49,7 @@ namespace CSIPlus.Internal
             GlobalStaticStorage.Release(handle);
         }
 
-        public static unsafe nint MakeData(object? data) {
+        public static unsafe SIPlusNative.DataContainerHandle MakeData(object? data) {
             switch(data) {
             case long i: return MakeInt(i);
             case ulong i: return MakeInt(i);
@@ -93,14 +71,10 @@ namespace CSIPlus.Internal
             case object _: {
                 using var type = new NETTypeInfo().GetNativeTypeInfo();
 
-                var handle = GCHandle.Alloc(data, GCHandleType.Pinned);
+                var handle = GCHandle.Alloc(data);
                 GlobalStaticStorage.Store(handle);
 
-                var dataHandle = SIPlusNative.siplus_data_make(type.Handle, 
-                    GCHandle.ToIntPtr(handle), ObjectDataDeleter);
-
-                dataHandle.DangerousRelease();
-                return dataHandle.DangerousGetHandle();
+                return SIPlusNative.siplus_data_make(type.Handle, GCHandle.ToIntPtr(handle), ObjectDataDeleter);
             }
 
             default:

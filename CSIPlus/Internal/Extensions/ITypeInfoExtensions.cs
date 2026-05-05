@@ -36,7 +36,10 @@ namespace CSIPlus.Internal.Extensions {
             }
 
             try {
-                *result = Util.MakeData(info.Access(data, name));
+                var handle = Util.MakeData(info.Access(data, name));
+                *result = handle.DangerousGetHandle();
+                handle.DangerousReleaseHandle();
+
                 return SIPlusNative.siplus_error_set((int)SIPlusNative.Errors.SIPLUS_OK, "");
             } catch (Exception ex) {
                 return SIPlusNative.siplus_error_set((int)SIPlusNative.Errors.SIPLUS_ERR, ex.ToString());
