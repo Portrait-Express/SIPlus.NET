@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CSIPlus.Internal.Extensions;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +8,8 @@ using System.Threading.Tasks;
 
 namespace CSIPlus.Internal {
     internal class NETTypeInfo : ITypeInfo {
+        internal static readonly NativeTypeInfo NativeInstance = new NETTypeInfo().GetNativeTypeInfo();
+
         public string Name => "System.Object";
 
         public object? Access(object? value, string name) {

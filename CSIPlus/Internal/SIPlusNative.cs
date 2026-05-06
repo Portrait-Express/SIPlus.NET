@@ -33,7 +33,7 @@ namespace CSIPlus
             }
 
             protected override bool ReleaseHandle() {
-                if(_shouldDelete) {
+                if(_shouldDelete && !IsInvalid && !IsClosed) {
                     return Release();
                 } else {
                     return true;
@@ -68,7 +68,7 @@ namespace CSIPlus
 
             protected override bool Release()
             {
-                siplus_text_delete(handle);
+                siplus_text_unref(handle);
                 return true;
             }
         }
@@ -89,7 +89,7 @@ namespace CSIPlus
 
             protected override bool Release()
             {
-                siplus_value_delete(handle);
+                siplus_value_unref(handle);
                 return true;
             }
         }
@@ -123,7 +123,6 @@ namespace CSIPlus
                 SetHandle(ptr);
             }
 
-
             protected override bool Release() {
                 siplus_icbuilder_delete(handle);
                 return true;
@@ -139,17 +138,7 @@ namespace CSIPlus
 
             protected override bool Release()
             {
-                siplus_invocation_delete(handle);
-                return true;
-            }
-        }
-
-        internal class ConstructorResultHandle : BaseHandle {
-            public ConstructorResultHandle() : base(true) { }
-
-            protected override bool Release()
-            {
-                siplus_text_result_delete(handle);
+                siplus_invocation_unref(handle);
                 return true;
             }
         }
@@ -173,12 +162,14 @@ namespace CSIPlus
             }
         }
 
-        internal class ErrorMessageHandle : BaseHandle {
-            public ErrorMessageHandle() : base(true) { }
+        internal class StringHandle : BaseHandle {
+            public StringHandle() : base(true) { }
+
+            public string? Value => Marshal.PtrToStringAnsi(handle);
 
             protected override bool Release()
             {
-                siplus_error_message_delete(handle);
+                siplus_string_delete(handle);
                 return true;
             }
         }
@@ -204,13 +195,13 @@ namespace CSIPlus
 
 
         [LibraryImport("siplus.dll", EntryPoint = "siplus_error_get", StringMarshalling = StringMarshalling.Utf8)]
-        internal static unsafe partial int siplus_error_get(out ErrorMessageHandle message);
+        internal static unsafe partial int siplus_error_get(out StringHandle message);
 
         [LibraryImport("siplus.dll", EntryPoint = "siplus_error_set", StringMarshalling = StringMarshalling.Utf8)]
         internal static unsafe partial int siplus_error_set(int err, string message);
 
-        [LibraryImport("siplus.dll", EntryPoint = "siplus_error_message_delete", StringMarshalling = StringMarshalling.Utf8)]
-        internal static unsafe partial void siplus_error_message_delete(IntPtr message);
+        [LibraryImport("siplus.dll", EntryPoint = "siplus_string_delete", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial void siplus_string_delete(IntPtr str);
 
 
 
@@ -238,20 +229,17 @@ namespace CSIPlus
         [LibraryImport("siplus.dll", EntryPoint = "siplus_value_retrieve", StringMarshalling = StringMarshalling.Utf8)]
         internal static unsafe partial int siplus_value_retrieve(out DataContainerHandle data, ValueRetrieverHandle value, InvocationContextHandle context);
 
-        [LibraryImport("siplus.dll", EntryPoint = "siplus_value_delete", StringMarshalling = StringMarshalling.Utf8)]
-        internal static unsafe partial void siplus_value_delete(IntPtr parser);
+        [LibraryImport("siplus.dll", EntryPoint = "siplus_value_unref", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial void siplus_value_unref(IntPtr parser);
 
 
 
 
         [LibraryImport("siplus.dll", EntryPoint = "siplus_text_construct", StringMarshalling = StringMarshalling.Utf8)]
-        internal static unsafe partial int siplus_text_construct(out ConstructorResultHandle text, TextConstructorHandle value, InvocationContextHandle context);
+        internal static unsafe partial int siplus_text_construct(out StringHandle text, TextConstructorHandle value, InvocationContextHandle context);
 
-        [LibraryImport("siplus.dll", EntryPoint = "siplus_text_delete", StringMarshalling = StringMarshalling.Utf8)]
-        internal static unsafe partial void siplus_text_delete(IntPtr parser);
-
-        [LibraryImport("siplus.dll", EntryPoint = "siplus_text_result_delete", StringMarshalling = StringMarshalling.Utf8)]
-        internal static unsafe partial void siplus_text_result_delete(IntPtr text);
+        [LibraryImport("siplus.dll", EntryPoint = "siplus_text_unref", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial void siplus_text_unref(IntPtr parser);
 
 
 
@@ -310,8 +298,8 @@ namespace CSIPlus
 
 
 
-        [LibraryImport("siplus.dll", EntryPoint = "siplus_invocation_delete", StringMarshalling = StringMarshalling.Utf8)]
-        internal static unsafe partial void siplus_invocation_delete(IntPtr context);
+        [LibraryImport("siplus.dll", EntryPoint = "siplus_invocation_unref", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial void siplus_invocation_unref(IntPtr context);
 
 
 
@@ -321,6 +309,18 @@ namespace CSIPlus
             out TypeInfoHandle type, IntPtr data, string name,
             SIPlusTypeIsIterable is_iterable, SIPlusTypeAccess access,
             SIPlusTypeIterate iterate, SIPlusTypeDeleter deleter);
+
+        [LibraryImport("siplus.dll", EntryPoint = "siplus_type_name", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial int siplus_type_name(out StringHandle ptr, TypeInfoHandle typeInfo);
+
+        [LibraryImport("siplus.dll", EntryPoint = "siplus_type_access", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial int siplus_type_access(out DataContainerHandle result, TypeInfoHandle type, DataContainerHandle data, string property);
+
+        [LibraryImport("siplus.dll", EntryPoint = "siplus_type_is_iterable", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial int siplus_type_is_iterable([MarshalAs(UnmanagedType.I4)] out bool result, TypeInfoHandle info, DataContainerHandle data);
+
+        [LibraryImport("siplus.dll", EntryPoint = "siplus_type_iterate", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial int siplus_type_iterate(out IteratorHandle result, TypeInfoHandle typeInfo, DataContainerHandle container);
 
         [LibraryImport("siplus.dll", EntryPoint = "siplus_type_unref", StringMarshalling = StringMarshalling.Utf8)]
         internal static unsafe partial void siplus_type_unref(IntPtr type);
@@ -333,6 +333,15 @@ namespace CSIPlus
             out IteratorHandle iterator, IntPtr data,
             SIPlusIteratorMore more, SIPlusIteratorNext next,
             SIPlusIteratorCurrent current, SIPlusIteratorDeleter deleter);
+
+        [LibraryImport("siplus.dll", EntryPoint = "siplus_iterator_next", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial int siplus_iterator_next(IteratorHandle iterator);
+
+        [LibraryImport("siplus.dll", EntryPoint = "siplus_iterator_more", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial int siplus_iterator_more([MarshalAs(UnmanagedType.I4)] out bool result, IteratorHandle iterator);
+
+        [LibraryImport("siplus.dll", EntryPoint = "siplus_iterator_current", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial int siplus_iterator_current(out DataContainerHandle result, IteratorHandle iterator);
 
         [LibraryImport("siplus.dll", EntryPoint = "siplus_iterator_delete", StringMarshalling = StringMarshalling.Utf8)]
         internal static unsafe partial void siplus_iterator_delete(IntPtr iterator);
@@ -354,6 +363,42 @@ namespace CSIPlus
 
         [LibraryImport("siplus.dll", EntryPoint = "siplus_data_make", StringMarshalling = StringMarshalling.Utf8)]
         internal static unsafe partial DataContainerHandle siplus_data_make(TypeInfoHandle type, IntPtr data, SIPlusUnknownDataContainerDeleter deleter);
+
+        [LibraryImport("siplus.dll", EntryPoint = "siplus_data_is_int", StringMarshalling = StringMarshalling.Utf8)]
+        [return:MarshalAs(UnmanagedType.I4)] internal static unsafe partial bool siplus_data_is_int(DataContainerHandle container);
+
+        [LibraryImport("siplus.dll", EntryPoint = "siplus_data_is_float", StringMarshalling = StringMarshalling.Utf8)]
+        [return:MarshalAs(UnmanagedType.I4)] internal static unsafe partial bool siplus_data_is_float(DataContainerHandle container);
+
+        [LibraryImport("siplus.dll", EntryPoint = "siplus_data_is_string", StringMarshalling = StringMarshalling.Utf8)]
+        [return:MarshalAs(UnmanagedType.I4)] internal static unsafe partial bool siplus_data_is_string(DataContainerHandle container);
+
+        [LibraryImport("siplus.dll", EntryPoint = "siplus_data_is_bool", StringMarshalling = StringMarshalling.Utf8)]
+        [return:MarshalAs(UnmanagedType.I4)] internal static unsafe partial bool siplus_data_is_bool(DataContainerHandle container);
+
+        [LibraryImport("siplus.dll", EntryPoint = "siplus_data_is_array", StringMarshalling = StringMarshalling.Utf8)]
+        [return:MarshalAs(UnmanagedType.I4)] internal static unsafe partial bool siplus_data_is_array(DataContainerHandle container);
+
+        [LibraryImport("siplus.dll", EntryPoint = "siplus_data_is", StringMarshalling = StringMarshalling.Utf8)]
+        [return:MarshalAs(UnmanagedType.I4)] internal static unsafe partial bool siplus_data_is(DataContainerHandle container, TypeInfoHandle typeInfo);
+
+        [LibraryImport("siplus.dll", EntryPoint = "siplus_data_as_int", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial int siplus_data_as_int(out int val, DataContainerHandle container);
+
+        [LibraryImport("siplus.dll", EntryPoint = "siplus_data_as_float", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial int siplus_data_as_float(out double val, DataContainerHandle container);
+
+        [LibraryImport("siplus.dll", EntryPoint = "siplus_data_as_string", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial int siplus_data_as_string(out StringHandle val, DataContainerHandle container);
+
+        [LibraryImport("siplus.dll", EntryPoint = "siplus_data_as_bool", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial int siplus_data_as_bool(out int val, DataContainerHandle container);
+
+        [LibraryImport("siplus.dll", EntryPoint = "siplus_data_ptr", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial int siplus_data_ptr(out IntPtr ptr, DataContainerHandle container);
+
+        [LibraryImport("siplus.dll", EntryPoint = "siplus_data_type", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial int siplus_data_type(out TypeInfoHandle ptr, DataContainerHandle container);
 
         [LibraryImport("siplus.dll", EntryPoint = "siplus_data_delete", StringMarshalling = StringMarshalling.Utf8)]
         internal static unsafe partial void siplus_data_delete(IntPtr container);

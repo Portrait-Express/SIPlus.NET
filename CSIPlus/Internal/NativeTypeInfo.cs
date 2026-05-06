@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections;
+using System.Runtime.InteropServices;
 
 namespace CSIPlus.Internal {
     internal class NativeTypeInfo : ITypeInfo {
@@ -15,20 +11,41 @@ namespace CSIPlus.Internal {
 
         public string Name {
             get {
-                throw new NotImplementedException();
+                unsafe {
+                    Util.AssertSuccess(SIPlusNative.siplus_type_name(out var name, Handle));
+                    return name.Value ?? "";
+                }
             }
         }
 
         public object? Access(object? value, string name) {
-            throw new NotImplementedException();
+            var inData = Util.MakeData(value);
+
+            Util.AssertSuccess(
+                SIPlusNative.siplus_type_access(out var outData, Handle, inData, name)
+            );
+
+            return Util.FromData(outData);
         }
 
         public bool IsIterable(object? value) {
-            throw new NotImplementedException();
+            var inData = Util.MakeData(value);
+
+            Util.AssertSuccess(
+                SIPlusNative.siplus_type_is_iterable(out var isIterable, Handle, inData)
+            );
+
+            return isIterable;
         }
 
         public IEnumerator Iterate(object? value) {
-            throw new NotImplementedException();
+            var inData = Util.MakeData(value);
+
+            Util.AssertSuccess(
+                SIPlusNative.siplus_type_iterate(out var iterator, Handle, inData)
+            );
+
+            return new IteratorEnumerator(new NativeIterator(iterator));
         }
 
         public void Dispose() {
@@ -40,6 +57,10 @@ namespace CSIPlus.Internal {
             if (Handle != null && !Handle.IsInvalid) {
                 Handle.Dispose();
             }
+        }
+
+        ~NativeTypeInfo() {
+            Dispose(false);
         }
     }
 }

@@ -34,5 +34,9 @@ namespace CSIPlus.Internal
                 Handle.Dispose();
             }
         }
+
+        ~NativeValueRetriever() {
+            Dispose(false);
+        }
     }
 }

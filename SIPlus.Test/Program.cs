@@ -1,6 +1,7 @@
 ﻿using SIPlus;
 using CSIPlus;
 using System.Diagnostics;
+using System.Collections;
 
 namespace SIPlus.Test
 {
@@ -23,12 +24,21 @@ namespace SIPlus.Test
     internal class Program {
         static void Main(string[] args) {
             Parser parser = new();
+            parser.Context().UseSTL();
             parser.Context().AddFunction("test", new TestFunction());
 
             parser.TestInterpolation("Base", "Hello, { .test }", new { test = "World" }, "Hello, World");
             parser.TestInterpolation("Func", "Hello, { test }", new { }, "Hello, test");
             parser.TestExpression("Base - Expr", ".test", new { test = 3 }, 3);
             parser.TestExpression("Func - Expr", "test", new { }, "test");
+            parser.TestExpression("Func - Array", "[1, 2, 3]", new { }, v => {
+                return v is IEnumerable e ? e.Cast<object>().SequenceEqual([1, 2, 3]) : false;
+            });
+
+            parser.Dispose();
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
         }
     }
 
@@ -40,7 +50,7 @@ namespace SIPlus.Test
             object defaultVal,
             string expected
         ) {
-            var context = parser.Context()
+            using var context = parser.Context()
                 .Builder()
                 .Default(defaultVal)
                 .Build();
@@ -58,7 +68,7 @@ namespace SIPlus.Test
             Console.Write($"Testing {name}");
 
             var watch = Stopwatch.StartNew();
-            var constructor = parser.GetInterpolation(text);
+            using var constructor = parser.GetInterpolation(text);
             var parseTime = watch.Elapsed;
 
             var value = constructor.Construct(context);
@@ -81,11 +91,23 @@ namespace SIPlus.Test
             object defaultVal,
             object expected
         ) {
-            var context = parser.Context().Builder().Default(defaultVal).Build();
+            using var context = parser.Context().Builder().Default(defaultVal).Build();
 
             TestExpression(parser, name, text, context, expected);
         }
-          
+
+        public static void TestExpression(
+            this Parser parser,
+            string name,
+            string text,
+            object defaultVal,
+            Func<object?, bool> test
+        ) {
+            using var context = parser.Context().Builder().Default(defaultVal).Build();
+
+            TestExpression(parser, name, text, context, test);
+        }
+
         public static void TestExpression(
             this Parser parser, 
             string name,
@@ -93,21 +115,30 @@ namespace SIPlus.Test
             InvocationContext context,
             object expected
         ) {
+            TestExpression(parser, name, text, context, v => v.Equals(expected));
+        }
+
+        public static void TestExpression(
+            this Parser parser,
+            string name,
+            string text,
+            InvocationContext context,
+            Func<object?, bool> test
+        ) {
             Console.Write($"Testing {name}");
 
             var watch = Stopwatch.StartNew();
-            var constructor = parser.GetExpression(text);
+            using var constructor = parser.GetExpression(text);
             var parseTime = watch.Elapsed;
 
             var value = constructor.Retrieve(context);
             var exTime = watch.Elapsed;
 
-            var passed = value.Equals(expected);
-    
+            var passed = test(value);
+
             Console.WriteLine($" {parseTime}/{exTime - parseTime} - {(passed ? "PASSED" : "FAILED")}");
 
-
-            if(!passed) {
+            if (!passed) {
                 throw new Exception($"Test {name} failed.");
             }
         }

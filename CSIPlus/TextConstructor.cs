@@ -19,14 +19,10 @@ namespace CSIPlus
 
         public string Construct(InvocationContext context)
         {
-            unsafe
-            {
-                var result = SIPlusNative.siplus_text_construct(out var resultHandle, _handle, context.Handle);
-                Util.AssertSuccess(result);
+            var result = SIPlusNative.siplus_text_construct(out var resultHandle, _handle, context.Handle);
+            Util.AssertSuccess(result);
 
-                return Marshal.PtrToStringAnsi(resultHandle.DangerousGetHandle())
-                    ?? throw new SIPlusException("internal error: TextConstructor returned NULL from construction");
-            }
+            return resultHandle.Value ?? "";
         }
 
         public void Dispose()
@@ -41,6 +37,10 @@ namespace CSIPlus
             {
                 _handle.Dispose();
             }
+        }
+
+        ~TextConstructor() {
+            Dispose(false);
         }
     }
 }

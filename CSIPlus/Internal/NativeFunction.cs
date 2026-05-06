@@ -39,5 +39,9 @@ namespace CSIPlus.Internal {
                 Handle.Dispose();
             }
         }
+
+        ~NativeFunction() {
+            Dispose(false);
+        }
     }
 }

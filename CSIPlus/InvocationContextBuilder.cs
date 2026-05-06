@@ -47,5 +47,9 @@ namespace CSIPlus {
                 Handle.Dispose();
             }
         }
+
+        ~InvocationContextBuilder() {
+            Dispose(false);
+        }
     }
 }

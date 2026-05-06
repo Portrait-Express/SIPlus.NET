@@ -13,15 +13,17 @@ namespace CSIPlus.Internal {
         }
 
         public bool More() {
-            throw new NotImplementedException();
+            Util.AssertSuccess(SIPlusNative.siplus_iterator_more(out bool result, Handle));
+            return result;
         }
 
         public void Next() {
-            throw new NotImplementedException();
+            Util.AssertSuccess(SIPlusNative.siplus_iterator_next(Handle));
         }
 
         public object? Current() {
-            throw new NotImplementedException();
+            Util.AssertSuccess(SIPlusNative.siplus_iterator_current(out var result, Handle));
+            return Util.FromData(result);
         }
 
         public void Dispose() {
@@ -33,6 +35,10 @@ namespace CSIPlus.Internal {
             if (Handle != null && !Handle.IsInvalid) {
                 Handle.Dispose();
             }
+        }
+
+        ~NativeIterator() {
+            Dispose(false);
         }
     }
 }
