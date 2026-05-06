@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CSIPlus.Internal.Extensions {
+namespace SIPlus.Internal.Extensions {
     internal static class IValueRetrieverExtensions {
         private unsafe static int Retrieve(nint* result, nint data, nint context) {
             IValueRetriever? retriever = GCHandle.FromIntPtr(data).Target as IValueRetriever;

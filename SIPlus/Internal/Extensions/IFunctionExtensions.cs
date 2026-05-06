@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CSIPlus.Internal.Extensions {
+namespace SIPlus.Internal.Extensions {
     internal static class IFunctionExtensions {
         private static unsafe int FunctionValue(IntPtr* result, IntPtr thisData, IntPtr parent, int paramc, IntPtr* paramv) {
             var thisVal = GCHandle.FromIntPtr(thisData).Target as IFunction;

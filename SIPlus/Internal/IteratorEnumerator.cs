@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CSIPlus.Internal {
+namespace SIPlus.Internal {
     internal class IteratorEnumerator : IEnumerator {
         private IIterator _iterator;
 

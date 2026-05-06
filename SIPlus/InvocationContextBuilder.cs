@@ -1,11 +1,11 @@
-﻿using CSIPlus.Internal;
+﻿using SIPlus.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CSIPlus {
+namespace SIPlus {
     public class InvocationContextBuilder : IDisposable {
         internal SIPlusNative.InvocationContextBuilderHandle Handle { get; init; }
 

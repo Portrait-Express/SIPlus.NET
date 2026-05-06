@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace CSIPlus.Internal.Extensions {
+namespace SIPlus.Internal.Extensions {
     internal static class ITypeInfoExtensions {
         internal static unsafe int IsIterable(nint thisData, nint obj) {
             var info = GCHandle.FromIntPtr(thisData).Target as ITypeInfo;

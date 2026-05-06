@@ -1,4 +1,4 @@
-﻿using CSIPlus.Internal.Extensions;
+﻿using SIPlus.Internal.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
 
-namespace CSIPlus.Internal {
+namespace SIPlus.Internal {
     internal class NativeFunction : IFunction {
         internal SIPlusNative.FunctionHandle Handle { get; init; }
 

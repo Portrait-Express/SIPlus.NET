@@ -1,5 +1,4 @@
 ﻿using SIPlus;
-using CSIPlus;
 using System.Diagnostics;
 using System.Collections;
 
@@ -22,21 +21,32 @@ namespace SIPlus.Test
     }
 
     internal class Program {
+        private class Inner { public string Text = "World"; }
+        private class Outer { public Inner Inner = new(); }
+
         static void Main(string[] args) {
+            var testVal = new Outer();
+
             Parser parser = new();
             parser.Context().UseSTL();
             parser.Context().AddFunction("test", new TestFunction());
 
-            parser.TestInterpolation("Base", "Hello, { .test }", new { test = "World" }, "Hello, World");
-            parser.TestInterpolation("Func", "Hello, { test }", new { }, "Hello, test");
-            parser.TestExpression("Base - Expr", ".test", new { test = 3 }, 3);
-            parser.TestExpression("Func - Expr", "test", new { }, "test");
-            parser.TestExpression("Func - Array", "[1, 2, 3]", new { }, v => {
+            using var varContext = parser.Context().Builder().Default(testVal).With("val", 12321).Build();
+
+            parser.TestInterpolation("Base", "Hello, { .Text }", testVal.Inner, "Hello, World");
+            parser.TestInterpolation("Func", "Hello, { test }", testVal, "Hello, test");
+            parser.TestExpression("Base - Expr", ".Inner", testVal, v => v == testVal.Inner);
+            parser.TestExpression("Func - Expr", "test", testVal, v => v.Equals("test"));
+            parser.TestExpression("Base - Func", "@get_2 => ( 2 ); @get_2", testVal, v => v.Equals(2));
+            parser.TestExpression("Base - Variable", "$val", new ParseOpts().AddGlobal("val"), varContext, v => v.Equals(12321));
+            parser.TestExpression("Base - Indexer", ".[1]", new int[] { 1, 2, 3 }, v => v.Equals(2));
+            parser.TestExpression("Base - Array", "[1, 2, 3]", testVal, v => {
                 return v is IEnumerable e ? e.Cast<object>().SequenceEqual([1, 2, 3]) : false;
             });
 
             parser.Dispose();
-
+            
+            //Force GC cleanup to make sure deleters work properly.
             GC.Collect();
             GC.WaitForPendingFinalizers();
         }
@@ -89,46 +99,25 @@ namespace SIPlus.Test
             string name,
             string text,
             object defaultVal,
-            object expected
-        ) {
-            using var context = parser.Context().Builder().Default(defaultVal).Build();
-
-            TestExpression(parser, name, text, context, expected);
-        }
-
-        public static void TestExpression(
-            this Parser parser,
-            string name,
-            string text,
-            object defaultVal,
             Func<object?, bool> test
         ) {
             using var context = parser.Context().Builder().Default(defaultVal).Build();
 
-            TestExpression(parser, name, text, context, test);
-        }
-
-        public static void TestExpression(
-            this Parser parser, 
-            string name,
-            string text, 
-            InvocationContext context,
-            object expected
-        ) {
-            TestExpression(parser, name, text, context, v => v.Equals(expected));
+            TestExpression(parser, name, text, new(), context, test);
         }
 
         public static void TestExpression(
             this Parser parser,
             string name,
             string text,
+            ParseOpts parseOpts,
             InvocationContext context,
             Func<object?, bool> test
         ) {
             Console.Write($"Testing {name}");
 
             var watch = Stopwatch.StartNew();
-            using var constructor = parser.GetExpression(text);
+            using var constructor = parser.GetExpression(text, parseOpts);
             var parseTime = watch.Elapsed;
 
             var value = constructor.Retrieve(context);

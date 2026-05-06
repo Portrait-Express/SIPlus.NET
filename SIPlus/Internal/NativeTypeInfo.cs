@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Runtime.InteropServices;
 
-namespace CSIPlus.Internal {
+namespace SIPlus.Internal {
     internal class NativeTypeInfo : ITypeInfo {
         internal SIPlusNative.TypeInfoHandle Handle;
 

@@ -1,17 +1,24 @@
-﻿using System;
+﻿using SIPlus.Internal;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CSIPlus
+namespace SIPlus
 {
-    public class InvocationContext : IDisposable
+    public class ParseOpts : IDisposable
     {
-        internal SIPlusNative.InvocationContextHandle Handle;
+        internal SIPlusNative.ParseOptsHandle Handle;
 
-        internal InvocationContext(SIPlusNative.InvocationContextHandle handle) {
-            Handle = handle;
+        public ParseOpts()
+        {
+            Handle = SIPlusNative.siplus_parse_opts_new();
+        }
+
+        public ParseOpts AddGlobal(string name) {
+            Util.AssertSuccess(SIPlusNative.siplus_parse_opts_add_global(Handle, name));
+            return this;
         }
 
         public void Dispose()
@@ -28,7 +35,7 @@ namespace CSIPlus
             }
         }
 
-        ~InvocationContext() {
+        ~ParseOpts() {
             Dispose(false);
         }
     }

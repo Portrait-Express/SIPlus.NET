@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 
-namespace CSIPlus {
+namespace SIPlus {
     public interface ITypeInfo : IDisposable {
         string Name { get; }
 

@@ -6,10 +6,18 @@
     <Nullable>enable</Nullable>
 	<PublishAot>true</PublishAot>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>SIPlus</Title>
+    <Version>$(VersionPrefix)1.1.3</Version>
+    <Authors>$(AssemblyName)</Authors>
+    <Description>SIPlus String Templating Library Bindings for .NET</Description>
+    <PackageProjectUrl>https://github.com/Portrait-Express/SIPlus.NET</PackageProjectUrl>
+    <PackageTags>template;utility;string;text</PackageTags>
+    <EnableNETAnalyzers>True</EnableNETAnalyzers>
   </PropertyGroup>
 	<Target Name="GenerateSiplusLib" BeforeTargets="BeforeCompile" Outputs="$(OutDir)siplus.dll">
 		<PropertyGroup>
-			<CMakeArguments>-DCMAKE_BUILD_TYPE=$(Configuration) -DSIPLUS_BUILD_TESTS=OFF -DSIPLUS_NAMESPACE=SIPlusCpp -DWITH_STATIC_CRT=Off -DSIPLUS_BUILD_EXAMPLES=OFF -DBUILD_SHARED_LIBS=ON</CMakeArguments>
+			<CMakeArguments>-DCMAKE_BUILD_TYPE=$(Configuration) -DSIPLUS_BUILD_TESTS=OFF -DWITH_STATIC_CRT=Off -DSIPLUS_BUILD_EXAMPLES=OFF -DBUILD_SHARED_LIBS=ON</CMakeArguments>
 		</PropertyGroup>
 
 		<Exec Command="if not exist siplus.build mkdir siplus.build" WorkingDirectory="$(OutDir)" ConsoleToMsBuild="true" />

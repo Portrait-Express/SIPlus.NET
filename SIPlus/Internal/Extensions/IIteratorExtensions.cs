@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
 
-namespace CSIPlus.Internal.Extensions {
+namespace SIPlus.Internal.Extensions {
     internal static class IIteratorExtensions {
         private static int More(nint thisData) {
             var iterator = GCHandle.FromIntPtr(thisData).Target as IIterator;

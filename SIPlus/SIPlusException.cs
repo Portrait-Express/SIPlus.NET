@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CSIPlus
+namespace SIPlus
 {
-    public class ParseException : SIPlusException
+    public class SIPlusException : Exception
     {
-        internal ParseException(string message) : base(message) { }
+        internal SIPlusException(string message) : base(message) { }
     }
 }

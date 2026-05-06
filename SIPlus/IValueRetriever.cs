@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CSIPlus
+namespace SIPlus
 {
-    public class SIPlusException : Exception
+    public interface IValueRetriever : IDisposable
     {
-        internal SIPlusException(string message) : base(message) { }
+        public object? Retrieve(InvocationContext context);
     }
 }

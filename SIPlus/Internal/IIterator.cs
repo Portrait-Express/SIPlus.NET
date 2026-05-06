@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CSIPlus.Internal {
+namespace SIPlus.Internal {
     internal interface IIterator : IDisposable {
         bool More();
         void Next();

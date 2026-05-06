@@ -4,17 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CSIPlus
+namespace SIPlus
 {
-    public class ParseOpts : IDisposable
+    public class InvocationContext : IDisposable
     {
-        internal SIPlusNative.ParseOptsHandle Handle;
+        internal SIPlusNative.InvocationContextHandle Handle;
 
-        public ParseOpts()
-        {
-            Handle = SIPlusNative.siplus_parse_opts_new();
+        internal InvocationContext(SIPlusNative.InvocationContextHandle handle) {
+            Handle = handle;
         }
-
 
         public void Dispose()
         {
@@ -30,7 +28,7 @@ namespace CSIPlus
             }
         }
 
-        ~ParseOpts() {
+        ~InvocationContext() {
             Dispose(false);
         }
     }

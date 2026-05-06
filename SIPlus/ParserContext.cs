@@ -1,5 +1,5 @@
-﻿using CSIPlus.Internal;
-using CSIPlus.Internal.Extensions;
+﻿using SIPlus.Internal;
+using SIPlus.Internal.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CSIPlus
+namespace SIPlus
 {
     public class ParserContext : IDisposable
     {

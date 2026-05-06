@@ -1,9 +1,9 @@
-﻿using CSIPlus.Internal.Extensions;
+﻿using SIPlus.Internal.Extensions;
 using System.Collections;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 
-namespace CSIPlus.Internal;
+namespace SIPlus.Internal;
 
 internal static class Util
 {

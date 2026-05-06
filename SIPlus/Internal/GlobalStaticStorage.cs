@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CSIPlus.Internal
+namespace SIPlus.Internal
 {
     internal static class GlobalStaticStorage
     {

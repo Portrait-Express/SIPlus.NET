@@ -1,13 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 18
-VisualStudioVersion = 18.3.11520.95 d18.3
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.37203.1 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SIPlus", "SIPlus\SIPlus.vcxproj", "{243EA32F-C093-8790-AF58-8A3EC06B7C77}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SIPlus.Test", "SIPlus.Test\SIPlus.Test.csproj", "{C150710E-49B6-4E11-99B6-D3957C4C26FD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSIPlus", "CSIPlus\CSIPlus.csproj", "{5119C59C-7757-4E4B-BE44-7B6A464706CA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SIPlus.NET", "SIPlus\SIPlus.NET.csproj", "{5119C59C-7757-4E4B-BE44-7B6A464706CA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,18 +17,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{243EA32F-C093-8790-AF58-8A3EC06B7C77}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{243EA32F-C093-8790-AF58-8A3EC06B7C77}.Debug|Any CPU.Build.0 = Debug|x64
-		{243EA32F-C093-8790-AF58-8A3EC06B7C77}.Debug|x64.ActiveCfg = Debug|x64
-		{243EA32F-C093-8790-AF58-8A3EC06B7C77}.Debug|x64.Build.0 = Debug|x64
-		{243EA32F-C093-8790-AF58-8A3EC06B7C77}.Debug|x86.ActiveCfg = Debug|Win32
-		{243EA32F-C093-8790-AF58-8A3EC06B7C77}.Debug|x86.Build.0 = Debug|Win32
-		{243EA32F-C093-8790-AF58-8A3EC06B7C77}.Release|Any CPU.ActiveCfg = Release|x64
-		{243EA32F-C093-8790-AF58-8A3EC06B7C77}.Release|Any CPU.Build.0 = Release|x64
-		{243EA32F-C093-8790-AF58-8A3EC06B7C77}.Release|x64.ActiveCfg = Release|x64
-		{243EA32F-C093-8790-AF58-8A3EC06B7C77}.Release|x64.Build.0 = Release|x64
-		{243EA32F-C093-8790-AF58-8A3EC06B7C77}.Release|x86.ActiveCfg = Release|Win32
-		{243EA32F-C093-8790-AF58-8A3EC06B7C77}.Release|x86.Build.0 = Release|Win32
 		{C150710E-49B6-4E11-99B6-D3957C4C26FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C150710E-49B6-4E11-99B6-D3957C4C26FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C150710E-49B6-4E11-99B6-D3957C4C26FD}.Debug|x64.ActiveCfg = Debug|Any CPU
