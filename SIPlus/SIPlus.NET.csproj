@@ -1,41 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-	<PublishAot>true</PublishAot>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>SIPlus</Title>
-    <Version>$(VersionPrefix)1.1.3</Version>
+    <Version>$(VersionPrefix)1.0.0</Version>
     <Authors>$(AssemblyName)</Authors>
     <Description>SIPlus String Templating Library Bindings for .NET</Description>
     <PackageProjectUrl>https://github.com/Portrait-Express/SIPlus.NET</PackageProjectUrl>
     <PackageTags>template;utility;string;text</PackageTags>
     <EnableNETAnalyzers>True</EnableNETAnalyzers>
   </PropertyGroup>
-	<Target Name="GenerateSiplusLib" BeforeTargets="BeforeCompile" Outputs="$(OutDir)siplus.dll">
-		<PropertyGroup>
-			<CMakeArguments>-DCMAKE_BUILD_TYPE=$(Configuration) -DSIPLUS_BUILD_TESTS=OFF -DWITH_STATIC_CRT=Off -DSIPLUS_BUILD_EXAMPLES=OFF -DBUILD_SHARED_LIBS=ON</CMakeArguments>
-		</PropertyGroup>
-
-		<Exec Command="if not exist siplus.build mkdir siplus.build" WorkingDirectory="$(OutDir)" ConsoleToMsBuild="true" />
-		<Exec Command="cmake $(ProjectDir)..\dependencies\siplus $(CMakeArguments)" WorkingDirectory="$(OutDir)siplus.build" ConsoleToMsBuild="true" />
-		<Exec Command="cmake --build . --config $(Configuration)" WorkingDirectory="$(OutDir)siplus.build" ConsoleToMsBuild="true" />
-		<Exec Command="copy $(Configuration)\siplus.dll ..\siplus.dll" WorkingDirectory="$(OutDir)siplus.build" ConsoleToMsBuild="true" />
-		<Exec Command="if exist $(Configuration)\siplus.pdb copy $(Configuration)\siplus.pdb ..\siplus.pdb" WorkingDirectory="$(OutDir)siplus.build" ConsoleToMsBuild="true" />
-	</Target>
-	<Target Name="CleanupGenerated" BeforeTargets="Clean">
-		<ItemGroup>
-			<CleanDir Include="$(OutDir)siplus.build" />
-		</ItemGroup>
-		<RemoveDir Directories="@(CleanDir)" />
-	</Target>
-	<ItemGroup>
-		<Content Include="$(OutDir)siplus.dll">
-			<Link>siplus.dll</Link>
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-	</ItemGroup>
+  <ItemGroup>
+    <None Update="runtimes\linux-x64\native\libsiplus.so" Pack="True" PackagePath="runtimes\linux-x64\native\libsiplus.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="runtimes\win-x64\native\siplus.dll" Pack="True" PackagePath="runtimes\win-x64\native\siplus.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+	  <None Update="runtimes\win-x86\native\siplus.dll" Pack="True" PackagePath="runtimes\win-x86\native\siplus.dll">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+  </ItemGroup>
 </Project>

@@ -43,6 +43,9 @@ namespace SIPlus.Test
             parser.TestExpression("Base - Array", "[1, 2, 3]", testVal, v => {
                 return v is IEnumerable e ? e.Cast<object>().SequenceEqual([1, 2, 3]) : false;
             });
+            parser.TestExpression("STL - Set", "const var $s = set_new; set_add $s 1; set_add $s 2; set_add $s 2; $s", testVal, v => {
+                return v is IEnumerable e ? e.Cast<object>().SequenceEqual([1, 2]) : false;
+            });
 
             parser.Dispose();
             

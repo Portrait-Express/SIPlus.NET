@@ -6,3 +6,4 @@
 **/obj
 **/*.binlog
 **/.vs
+**/*.csproj.user
