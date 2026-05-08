@@ -1,6 +1,7 @@
 ﻿using SIPlus;
 using System.Diagnostics;
 using System.Collections;
+using System.Runtime.InteropServices;
 
 namespace SIPlus.Test
 {
@@ -25,6 +26,18 @@ namespace SIPlus.Test
         private class Outer { public Inner Inner = new(); }
 
         static void Main(string[] args) {
+            //Does not look in runtimes if not in a nuget package, so this is necessary for testing
+            NativeLibrary.SetDllImportResolver(typeof(Parser).Assembly, (name, assembly, searchPath) => {
+                if(name == "siplus")
+                {
+                    var path = Path.Combine(Environment.CurrentDirectory, "runtimes", RuntimeInformation.RuntimeIdentifier, "native", "siplus.dll");
+                    if (NativeLibrary.TryLoad(path, out var handle))
+                        return handle;
+                }
+
+                return IntPtr.Zero;
+            });
+
             var testVal = new Outer();
 
             Parser parser = new();
@@ -33,6 +46,17 @@ namespace SIPlus.Test
 
             using var varContext = parser.Context().Builder().Default(testVal).With("val", 12321).Build();
 
+            //Make sure default type mappings work
+            parser.TestExpression("TypeMap - Null", ". | type", null, v => v.Equals("null"));
+            parser.TestExpression("TypeMap - Number", ". | type", 2, v => v.Equals("long"));
+            parser.TestExpression("TypeMap - String", ". | type", "text", v => v.Equals("string"));
+            //TODO - CHANGE THIS ON SIPLUS 2.0.2. BUG!!!!!!-----vvvvv---------------- vvvv
+            parser.TestExpression("TypeMap - Bool", ". | type", false, v => v.Equals("long"));
+
+            //Check to make sure version 2.0.1 is available
+            parser.TestExpression("Version - 2.0.1", "null | type", false, v => v.Equals("null"));
+
+            //Test functionality
             parser.TestInterpolation("Base", "Hello, { .Text }", testVal.Inner, "Hello, World");
             parser.TestInterpolation("Func", "Hello, { test }", testVal, "Hello, test");
             parser.TestExpression("Base - Expr", ".Inner", testVal, v => v == testVal.Inner);
@@ -60,7 +84,7 @@ namespace SIPlus.Test
             this Parser parser,
             string name,
             string text,
-            object defaultVal,
+            object? defaultVal,
             string expected
         ) {
             using var context = parser.Context()
@@ -101,7 +125,7 @@ namespace SIPlus.Test
             this Parser parser,
             string name,
             string text,
-            object defaultVal,
+            object? defaultVal,
             Func<object?, bool> test
         ) {
             using var context = parser.Context().Builder().Default(defaultVal).Build();

@@ -19,7 +19,7 @@ namespace SIPlus
 
         public string Construct(InvocationContext context)
         {
-            var result = SIPlusNative.siplus_text_construct(out var resultHandle, _handle, context.Handle);
+             var result = SIPlusNative.siplus_text_construct(out var resultHandle, _handle, context.Handle);
             Util.AssertSuccess(result);
 
             return resultHandle.Value ?? "";

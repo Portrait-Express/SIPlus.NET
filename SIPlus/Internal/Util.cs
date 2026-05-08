@@ -45,6 +45,11 @@ internal static class Util
         return SIPlusNative.siplus_data_make_bool(data ? 1 : 0);
     }
 
+    private static unsafe SIPlusNative.DataContainerHandle MakeNull()
+    {
+        return SIPlusNative.siplus_data_make_null();
+    }
+
     private static void ObjectDataDeleter(nint data) {
         var handle = GCHandle.FromIntPtr(data);
         handle.Free();
@@ -69,7 +74,8 @@ internal static class Util
 
         case bool b: return MakeBool(b);
 
-        case null:
+        case null: return MakeNull();
+
         case object _: {
             using var type = new NETTypeInfo().GetNativeTypeInfo();
 
@@ -97,6 +103,8 @@ internal static class Util
         } else if (SIPlusNative.siplus_data_is_string(data)) {
             AssertSuccess(SIPlusNative.siplus_data_as_string(out var result, data));
             return result.Value;
+        } else if (SIPlusNative.siplus_data_is_null(data)) {
+            return null;
         } else if (SIPlusNative.siplus_data_is(data, NETTypeInfo.NativeInstance.Handle)) {
             AssertSuccess(SIPlusNative.siplus_data_ptr(out var ptr, data));
             return GCHandle.FromIntPtr(ptr).Target;

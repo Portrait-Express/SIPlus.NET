@@ -361,6 +361,9 @@ namespace SIPlus
         [LibraryImport("siplus", EntryPoint = "siplus_data_make_bool", StringMarshalling = StringMarshalling.Utf8)]
         internal static unsafe partial DataContainerHandle siplus_data_make_bool(int value);
 
+        [LibraryImport("siplus", EntryPoint = "siplus_data_make_null", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial DataContainerHandle siplus_data_make_null();
+
         [LibraryImport("siplus", EntryPoint = "siplus_data_make", StringMarshalling = StringMarshalling.Utf8)]
         internal static unsafe partial DataContainerHandle siplus_data_make(TypeInfoHandle type, IntPtr data, SIPlusUnknownDataContainerDeleter deleter);
 
@@ -378,6 +381,9 @@ namespace SIPlus
 
         [LibraryImport("siplus", EntryPoint = "siplus_data_is_array", StringMarshalling = StringMarshalling.Utf8)]
         [return:MarshalAs(UnmanagedType.I4)] internal static unsafe partial bool siplus_data_is_array(DataContainerHandle container);
+
+        [LibraryImport("siplus", EntryPoint = "siplus_data_is_null", StringMarshalling = StringMarshalling.Utf8)]
+        [return: MarshalAs(UnmanagedType.I4)] internal static unsafe partial bool siplus_data_is_null(DataContainerHandle container);
 
         [LibraryImport("siplus", EntryPoint = "siplus_data_is", StringMarshalling = StringMarshalling.Utf8)]
         [return:MarshalAs(UnmanagedType.I4)] internal static unsafe partial bool siplus_data_is(DataContainerHandle container, TypeInfoHandle typeInfo);
