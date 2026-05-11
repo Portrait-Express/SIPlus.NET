@@ -1,9 +1,11 @@
-﻿using SIPlus.Internal.Extensions;
+﻿using SIPlus.Internal;
+using SIPlus.Internal.Extensions;
+using SIPlus.NET;
 using System.Collections;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 
-namespace SIPlus.Internal;
+namespace SIPlus.NET.Internal;
 
 internal static class Util
 {
@@ -22,7 +24,7 @@ internal static class Util
                 throw new ParseException(msg ?? "Parse Error");
 
             case (int)SIPlusNative.Errors.SIPLUS_INVOKE_ERROR:
-                throw new InvocationException(msg ?? "Error during template invocation");
+                 throw new InvocationException(msg ?? "Error during template invocation");
 
             case (int)SIPlusNative.Errors.SIPLUS_ERR:
                 throw new SIPlusException(msg ?? "Unknown Error");
@@ -75,6 +77,15 @@ internal static class Util
         case bool b: return MakeBool(b);
 
         case null: return MakeNull();
+
+        case DataContainer container: {
+            using var type = container.Type.GetNativeTypeInfo();
+
+            var handle = GCHandle.Alloc(container.Value);
+            GlobalStaticStorage.Store(handle);
+
+            return SIPlusNative.siplus_data_make(type.Handle, GCHandle.ToIntPtr(handle), ObjectDataDeleter);
+        }
 
         case object _: {
             using var type = new NETTypeInfo().GetNativeTypeInfo();

@@ -1,4 +1,6 @@
 ﻿using SIPlus.Internal.Extensions;
+using SIPlus.NET;
+using SIPlus.NET.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;

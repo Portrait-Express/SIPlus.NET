@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using SIPlus.NET;
+using SIPlus.NET.Internal;
+using System.Collections;
 using System.Runtime.InteropServices;
 
 namespace SIPlus.Internal {

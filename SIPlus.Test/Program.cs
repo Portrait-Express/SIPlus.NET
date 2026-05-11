@@ -2,9 +2,29 @@
 using System.Diagnostics;
 using System.Collections;
 using System.Runtime.InteropServices;
+using SIPlus.NET;
 
 namespace SIPlus.Test
 {
+    internal class TestTypeInfo : ITypeInfo {
+        public TestTypeInfo() { }
+        public string Name => "TestType";
+
+        public object? Access(object? value, string name) {
+            switch(name) {
+            case "a":
+                return 123;
+
+            default:
+                throw new Exception($"No suitable property '{name}'");
+            }
+        }
+
+        public bool IsIterable(object? value) => false;
+        public IEnumerator Iterate(object? value) => throw new NotImplementedException();
+        public void Dispose() { }
+    }
+
     internal class TestFuncValueRetriever : IValueRetriever {
         public object? Retrieve(InvocationContext value) {
             return "test";
@@ -67,9 +87,16 @@ namespace SIPlus.Test
             parser.TestExpression("Base - Array", "[1, 2, 3]", testVal, v => {
                 return v is IEnumerable e ? e.Cast<object>().SequenceEqual([1, 2, 3]) : false;
             });
+
+            //Custom Type Infos
+            var data = new DataContainer(null, new TestTypeInfo());
+            parser.TestExpression("Base - TypeInfo", ".a", data, v => v.Equals(123));
+
+            //Some STL tests
             parser.TestExpression("STL - Set", "const var $s = set_new; set_add $s 1; set_add $s 2; set_add $s 2; $s", testVal, v => {
                 return v is IEnumerable e ? e.Cast<object>().SequenceEqual([1, 2]) : false;
             });
+
 
             parser.Dispose();
             
