@@ -70,11 +70,10 @@ namespace SIPlus.Test
             parser.TestExpression("TypeMap - Null", ". | type", null, v => v.Equals("null"));
             parser.TestExpression("TypeMap - Number", ". | type", 2, v => v.Equals("long"));
             parser.TestExpression("TypeMap - String", ". | type", "text", v => v.Equals("string"));
-            //TODO - CHANGE THIS ON SIPLUS 2.0.2. BUG!!!!!!-----vvvvv---------------- vvvv
-            parser.TestExpression("TypeMap - Bool", ". | type", false, v => v.Equals("long"));
+            parser.TestExpression("TypeMap - Bool", ". | type", false, v => v.Equals("boolean"));
 
             //Check to make sure version 2.0.1 is available
-            parser.TestExpression("Version - 2.0.1", "null | type", false, v => v.Equals("null"));
+            parser.TestExpression("Version - 2.0.2", ". | type", false, v => v.Equals("boolean"));
 
             //Test functionality
             parser.TestInterpolation("Base", "Hello, { .Text }", testVal.Inner, "Hello, World");
