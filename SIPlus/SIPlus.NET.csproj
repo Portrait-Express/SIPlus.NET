@@ -6,7 +6,7 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>SIPlus</Title>
-    <Version>$(VersionPrefix)1.0.1</Version>
+    <Version>$(VersionPrefix)1.0.2</Version>
     <Authors>PortraitExpress;Payton-Doud</Authors>
     <Description>SIPlus String Templating Library Bindings for .NET</Description>
     <PackageProjectUrl>https://github.com/Portrait-Express/SIPlus.NET</PackageProjectUrl>
