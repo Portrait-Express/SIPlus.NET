@@ -44,7 +44,7 @@ namespace SIPlus.Internal.Extensions {
 
                 return SIPlusNative.siplus_error_set((int)SIPlusNative.Errors.SIPLUS_OK, "");
             } catch (Exception ex) {
-                return SIPlusNative.siplus_error_set((int)SIPlusNative.Errors.SIPLUS_ERR, ex.ToString());
+                return SIPlusNative.siplus_error_set((int)SIPlusNative.Errors.SIPLUS_ERR, ex.Message);
             }
         }
 
@@ -68,7 +68,7 @@ namespace SIPlus.Internal.Extensions {
 
                 return SIPlusNative.siplus_error_set((int)SIPlusNative.Errors.SIPLUS_OK, "");
             } catch (Exception ex) {
-                return SIPlusNative.siplus_error_set((int)SIPlusNative.Errors.SIPLUS_ERR, ex.ToString());
+                return SIPlusNative.siplus_error_set((int)SIPlusNative.Errors.SIPLUS_ERR, ex.Message);
             }
         }
 

@@ -24,9 +24,7 @@ namespace SIPlus.Internal.Extensions {
             var iterator = GCHandle.FromIntPtr(thisData).Target as IIterator;
 
             if (iterator == null) {
-                return SIPlusNative.siplus_error_set(
-                    (int)SIPlusNative.Errors.SIPLUS_ERR, 
-                    "iterator was null");
+                return SIPlusNative.siplus_error_set((int)SIPlusNative.Errors.SIPLUS_ERR, "iterator was null");
             }
 
             try {
@@ -36,7 +34,7 @@ namespace SIPlus.Internal.Extensions {
             } catch(Exception ex) {
                 return SIPlusNative.siplus_error_set(
                     (int)SIPlusNative.Errors.SIPLUS_ERR,
-                    ex.ToString());
+                    ex.Message);
             }
         }
 
@@ -44,9 +42,7 @@ namespace SIPlus.Internal.Extensions {
             var iterator = GCHandle.FromIntPtr(thisData).Target as IIterator;
 
             if (iterator == null) {
-                return SIPlusNative.siplus_error_set(
-                    (int)SIPlusNative.Errors.SIPLUS_ERR,
-                    "iterator was null");
+                return SIPlusNative.siplus_error_set((int)SIPlusNative.Errors.SIPLUS_ERR, "iterator was null");
             }
 
             try {
@@ -56,9 +52,7 @@ namespace SIPlus.Internal.Extensions {
 
                 return SIPlusNative.siplus_error_set((int)SIPlusNative.Errors.SIPLUS_OK, "");
             } catch (Exception ex) {
-                return SIPlusNative.siplus_error_set(
-                    (int)SIPlusNative.Errors.SIPLUS_ERR,
-                    ex.ToString());
+                return SIPlusNative.siplus_error_set((int)SIPlusNative.Errors.SIPLUS_ERR, ex.Message);
             }
         }
 
