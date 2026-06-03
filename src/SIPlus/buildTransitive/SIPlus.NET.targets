@@ -1,0 +1,5 @@
+<Project>
+	<ItemGroup Condition="'$(RuntimeIdentifier)' == 'browser-wasm'">
+		<NativeFileReference Include="$(MSBuildThisFileDirectory)..\runtimes\browser-wasm\native\siplus.a" />
+	</ItemGroup>
+</Project>
