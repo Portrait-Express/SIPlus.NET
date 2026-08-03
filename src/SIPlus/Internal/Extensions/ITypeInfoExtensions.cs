@@ -1,6 +1,7 @@
 ﻿using SIPlus.NET.Internal;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 
 namespace SIPlus.NET.Internal.Extensions {
     internal static class ITypeInfoExtensions {
@@ -36,6 +37,32 @@ namespace SIPlus.NET.Internal.Extensions {
                     throw new InvalidOperationException("No name passed to 'access'");
 
                 var handle = Util.MakeData(info.Access(data, nameStr));
+                *result = handle.DangerousGetHandle();
+                handle.DangerousReleaseHandle();
+
+                return SIPlusNative.siplus_error_set((int)SIPlusNative.Errors.SIPLUS_OK, "");
+            } catch (Exception ex) {
+                return SIPlusNative.siplus_error_set((int)SIPlusNative.Errors.SIPLUS_ERR, ex.Message);
+            }
+        }
+
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+        internal static unsafe int Index(nint* result, nint thisData, nint context, nint value, nint index) {
+            var valueobj = GCHandle.FromIntPtr(value).Target;
+            var indexobj = Util.FromData(new(index, false));
+
+            if (GCHandle.FromIntPtr(thisData).Target is not ITypeInfoIndexer info) {
+                return SIPlusNative.siplus_error_set(
+                    (int)SIPlusNative.Errors.SIPLUS_INVOKE_ERROR,
+                    "index: Type info was null");
+            }
+
+            try {
+                var contextHandle = new SIPlusNative.ContextHandle(context, false);
+                var handle = Util.MakeData(
+                    info.Index(new ParserContext(contextHandle), valueobj, indexobj)
+                );
+
                 *result = handle.DangerousGetHandle();
                 handle.DangerousReleaseHandle();
 
@@ -93,6 +120,7 @@ namespace SIPlus.NET.Internal.Extensions {
                     name = ptr,
                     is_iterable = &IsIterable,
                     access = &Access,
+                    index = info is ITypeInfoIndexer ? &Index : null,
                     iterate = &Iterate,
                     delete = &Delete
                 };

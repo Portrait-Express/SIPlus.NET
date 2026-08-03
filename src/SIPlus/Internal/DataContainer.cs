@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 
-namespace SIPlus.NET {
-    public class DataContainer {
+namespace SIPlus.NET.Internal {
+    internal class DataContainer {
         public object? Value;
         public ITypeInfo Type;
         public bool IsIterable => Type.IsIterable(Value);

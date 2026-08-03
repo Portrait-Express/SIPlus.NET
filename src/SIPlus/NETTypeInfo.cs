@@ -1,14 +1,10 @@
 ﻿using SIPlus.NET.Internal;
 using SIPlus.NET.Internal.Extensions;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Reflection;
 
 namespace SIPlus.NET {
-    public class NETTypeInfo : ITypeInfo {
+    public class NETTypeInfo : ITypeInfo, ITypeInfoIndexer {
         internal static readonly NativeTypeInfo NativeInstance = new NETTypeInfo().GetNativeTypeInfo();
 
         public string Name => "System.Object";
@@ -20,17 +16,36 @@ namespace SIPlus.NET {
 
             var type = value.GetType();
 
-            var member = type.GetField(name);
-            if(member != null) {
-                return member.GetValue(value);
+            MemberInfo? member = type.GetField(name);
+            if (member == null) {
+                member = type.GetProperty(name);
             }
 
-            var prop = type.GetProperty(name);
-            if (prop != null) {
+            if(member is FieldInfo field) {
+                return field.GetValue(value);
+            } else if(member is PropertyInfo prop) {
                 return prop.GetValue(value);
+            } else {
+                throw new Exception($"Object of type '{type.Name}' has no accessible property '{name}'");
+            }
+        }
+
+        public object? Index(ParserContext context, object? list, object? index) {
+            if (index != null && list is IDictionary idictionary) {
+                return idictionary[index];
             }
 
-            throw new Exception($"Object of type '{type.Name}' has no accessible property '{name}'");
+            if(TryIndex(index, out var idx)) {
+                if (list is IList ilist) return ilist[idx];
+                if (list is IEnumerable enumerable) return enumerable.ElementAt(idx);
+            }
+
+            if(index?.GetType() == typeof(string)) {
+                return Access(list, (string)index);
+            }
+
+            throw new InvocationException(
+                $"Cannot use '{index}' to index object of type '{list}'");
         }
 
         public bool IsIterable(object? value) {
@@ -55,6 +70,47 @@ namespace SIPlus.NET {
             }
 
             throw new Exception($"{value.GetType().Name} is not iterable");
+        }
+
+        private static bool TryIndex(object? value, out int result) {
+            if (value is ulong ul) {
+                if (ul > int.MaxValue) {
+                    result = 0;
+                    return false;
+                }
+
+                result = (int)ul;
+                return true;
+            }
+
+            if (value is long l) {
+                if (l > int.MaxValue || l < int.MinValue) {
+                    result = 0;
+                    return false;
+                }
+
+                result = (int)l;
+                return true;
+            }
+
+            if (value is uint ui) {
+                if (ui > int.MaxValue) {
+                    result = 0;
+                    return false;
+                }
+
+                result = (int)ui; 
+                return true; 
+            }
+
+            if (value is int i) { result = i; return true; }
+            if (value is ushort us) { result = us; return true; }
+            if (value is short s) { result = s; return true; }
+            if (value is byte ub) { result = ub; return true; }
+            if (value is char b) { result = b; return true; }
+
+            result = 0; 
+            return false;
         }
 
         public void Dispose() { }

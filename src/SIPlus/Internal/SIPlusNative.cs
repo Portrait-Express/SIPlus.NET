@@ -155,6 +155,7 @@ namespace SIPlus.NET
             public nint data;
             public nint name;
             public delegate* unmanaged[Cdecl]<nint*, nint, nint, nint, int> access;
+            public delegate* unmanaged[Cdecl]<nint*, nint, nint, nint, nint, int> index;
             public delegate* unmanaged[Cdecl]<nint*, nint, nint, int> iterate;
             public delegate* unmanaged[Cdecl]<nint, nint, int> is_iterable;
             public delegate* unmanaged[Cdecl]<nint, void> delete;
@@ -168,6 +169,7 @@ namespace SIPlus.NET
             out nint type, nint data, [MarshalAs(UnmanagedType.LPUTF8Str)] string name,
             delegate* unmanaged[Cdecl]<nint, nint, int> is_iterable,
             delegate* unmanaged[Cdecl]<nint*, nint, nint, nint, int> access,
+            delegate* unmanaged[Cdecl]<nint*, nint, nint, nint, int> index,
             delegate* unmanaged[Cdecl]<nint*, nint, nint, int> iterate,
             delegate* unmanaged[Cdecl]<nint, void> deleter);
 
@@ -340,6 +342,12 @@ namespace SIPlus.NET
 
         internal class ContextHandle : BaseHandle {
             public ContextHandle() : base(true) { }
+            public ContextHandle(nint ptr) : base(true) {
+                SetHandle(ptr);
+            }
+            public ContextHandle(nint ptr, bool ownsHandle) : base(ownsHandle) {
+                SetHandle(ptr);
+            }
 
             protected override bool Release() {
                 siplus_context_unref(handle);

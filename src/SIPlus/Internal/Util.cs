@@ -1,6 +1,6 @@
-﻿using SIPlus.NET.Internal;
-using SIPlus.NET.Internal.Extensions;
+﻿using SIPlus.NET.Internal.Extensions;
 using System.Collections;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -83,7 +83,6 @@ internal static class Util
         case null: return MakeNull();
 
         case DataContainer container: {
-                    Console.WriteLine("EEEEEEEE");
             using var type = container.Type.GetNativeTypeInfo();
 
             var handle = GCHandle.Alloc(container.Value);
@@ -92,17 +91,32 @@ internal static class Util
             return SIPlusNative.siplus_data_make(type.Handle, GCHandle.ToIntPtr(handle), &ObjectDataDeleter);
         }
 
-        case object _: {
-            using var type = new NETTypeInfo().GetNativeTypeInfo();
+        case object obj:
+            NativeTypeInfo typeInfo;
 
-            var handle = GCHandle.Alloc(data);
-            GlobalStaticStorage.Store(handle);
+            var attr = obj.GetType().GetCustomAttribute<SIPlusTypeAttribute>();
+            if(attr != null) {
+                if(!attr.TypeInfoType.IsAssignableTo(typeof(ITypeInfo))) {
+                    throw new SIPlusException(
+                        $"Type '{attr.TypeInfoType}' from SIPlusType attribute " +
+                        $"on type '{obj.GetType()}' does not inherit from ITypeInfo."
+                    );
+                }
 
-            return SIPlusNative.siplus_data_make(type.Handle, GCHandle.ToIntPtr(handle), &ObjectDataDeleter);
-        }
+                typeInfo = ((ITypeInfo)Activator.CreateInstance(attr.TypeInfoType)!)
+                            .GetNativeTypeInfo();
+            } else {
+                typeInfo = new NETTypeInfo().GetNativeTypeInfo();
+            }
 
-        default:
-            Console.WriteLine("WHAT ARE YOU");
+            try {
+                var handle = GCHandle.Alloc(data);
+                GlobalStaticStorage.Store(handle);
+
+                return SIPlusNative.siplus_data_make(typeInfo.Handle, GCHandle.ToIntPtr(handle), &ObjectDataDeleter);
+            } finally {
+                typeInfo.Dispose();
+            }
         }
 
         throw new Exception($"Unsure how to convert {data.GetType().Name}");
@@ -149,5 +163,19 @@ internal static class Util
         while(enumerator.MoveNext()) {
             yield return enumerator.Current;
         }
+    }
+
+    public static object? ElementAt(this IEnumerable enumerable, int index) {
+        var i = 0;
+        var enumerator = enumerable.GetEnumerator();
+        while (enumerator.MoveNext()) {
+            if(i == index) {
+                return enumerator.Current;
+            }
+
+            i++;
+        }
+
+        throw new IndexOutOfRangeException($"Index '{index}' is out of range of the collection.");
     }
 }

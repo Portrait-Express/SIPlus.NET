@@ -1,5 +1,4 @@
-﻿using Xunit;
-using SIPlus.NET;
+﻿using SIPlus.NET;
 using SIPlus.Test.Data;
 using SIPlus.Test.Extensions;
 using SIPlus.Test.Models;
