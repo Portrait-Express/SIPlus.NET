@@ -13,7 +13,7 @@ namespace SIPlus.Test.Extensions
         ) {
             using var context = parser.Context()
                 .Builder()
-                .Default(defaultVal)
+                .Default(new(defaultVal))
                 .Build();
 
             TestInterpolation(parser, name, text, context, expected);
@@ -44,9 +44,9 @@ namespace SIPlus.Test.Extensions
             string name,
             string text,
             object? defaultVal,
-            Func<object?, bool> test
+            Action<SIValue> test
         ) {
-            using var context = parser.Context().Builder().Default(defaultVal).Build();
+            using var context = parser.Context().Builder().Default(new(defaultVal)).Build();
 
             TestExpression(parser, name, text, new(), context, test);
         }
@@ -57,7 +57,7 @@ namespace SIPlus.Test.Extensions
             string text,
             ParseOpts parseOpts,
             InvocationContext context,
-            Func<object?, bool> test
+            Action<SIValue> test
         ) {
             Console.Write($"Testing {name}");
 
@@ -68,10 +68,7 @@ namespace SIPlus.Test.Extensions
             var value = constructor.Retrieve(context);
             var exTime = watch.Elapsed;
 
-            var passed = test(value);
-            Console.WriteLine($" {parseTime}/{exTime - parseTime} - {(passed ? "PASSED" : "FAILED")}");
-
-            Assert.True(passed, $"Expression \"{text}\" did not pass");
+            test(value);
         }
     }
 }

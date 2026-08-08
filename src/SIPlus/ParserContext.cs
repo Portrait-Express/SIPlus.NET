@@ -1,6 +1,5 @@
 ﻿using SIPlus.NET.Internal.Extensions;
 using SIPlus.NET.Internal;
-using SIPlus.NET.Internal.Extensions;
 
 namespace SIPlus.NET
 {

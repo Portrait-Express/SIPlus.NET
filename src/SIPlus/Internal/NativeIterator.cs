@@ -23,9 +23,9 @@ namespace SIPlus.NET.Internal {
             Util.AssertSuccess(SIPlusNative.siplus_iterator_next(Handle));
         }
 
-        public object? Current() {
+        public SIValue Current() {
             Util.AssertSuccess(SIPlusNative.siplus_iterator_current(out var result, Handle));
-            return Util.FromData(result);
+            return new(result);
         }
 
         public void Dispose() {

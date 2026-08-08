@@ -50,7 +50,8 @@ namespace SIPlus.NET.Internal.Extensions {
             }
 
             try {
-                var handle = Util.MakeData(iterator.Current());
+                var handle = iterator.Current().ToNative();
+
                 *result = handle.DangerousGetHandle();
                 handle.DangerousReleaseHandle();
 

@@ -8,6 +8,6 @@ namespace SIPlus.NET
 {
     public interface IValueRetriever : IDisposable
     {
-        public object? Retrieve(InvocationContext context);
+        public SIValue Retrieve(InvocationContext context);
     }
 }

@@ -9,7 +9,7 @@ namespace SIPlus.NET.Internal {
 
         public string Name => _typeInfo.Name;
 
-        public object? Access(object? value, string name) {
+        public SIValue Access(object? value, string name) {
             throw new NotImplementedException();
         }
 
@@ -21,7 +21,7 @@ namespace SIPlus.NET.Internal {
             throw new NotImplementedException();
         }
 
-        public IEnumerator Iterate(object? value) {
+        public IEnumerator<SIValue> Iterate(object? value) {
             throw new NotImplementedException();
         }
     }

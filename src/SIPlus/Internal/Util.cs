@@ -1,7 +1,4 @@
-﻿using SIPlus.NET.Internal.Extensions;
-using System.Collections;
-using System.Reflection;
-using System.Runtime.CompilerServices;
+﻿using System.Collections;
 using System.Runtime.InteropServices;
 
 namespace SIPlus.NET.Internal;
@@ -55,14 +52,37 @@ internal static class Util
         return SIPlusNative.siplus_data_make_null();
     }
 
-    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
-    private static void ObjectDataDeleter(nint data) {
-        var handle = GCHandle.FromIntPtr(data);
-        handle.Free();
-        GlobalStaticStorage.Release(handle);
+    public static ITypeInfo TypeInfoFor(object? value) {
+        switch (value) {
+            case long i: return new NativeTypeInfo(SIPlusNative.siplus_type_int()); 
+            case ulong i: return new NativeTypeInfo(SIPlusNative.siplus_type_int());
+            case int i: return new NativeTypeInfo(SIPlusNative.siplus_type_int());
+            case uint i: return new NativeTypeInfo(SIPlusNative.siplus_type_int());
+            case short i: return new NativeTypeInfo(SIPlusNative.siplus_type_int());
+            case ushort i: return new NativeTypeInfo(SIPlusNative.siplus_type_int());
+            case char i: return new NativeTypeInfo(SIPlusNative.siplus_type_int());
+            case byte i: return new NativeTypeInfo(SIPlusNative.siplus_type_int());
+
+            case float f: return new NativeTypeInfo(SIPlusNative.siplus_type_float());
+            case double f: return new NativeTypeInfo(SIPlusNative.siplus_type_float());
+
+            case string s: return new NativeTypeInfo(SIPlusNative.siplus_type_string());
+
+            case bool b: return new NativeTypeInfo(SIPlusNative.siplus_type_bool());
+
+            case null: return new NativeTypeInfo(SIPlusNative.siplus_type_null());
+
+            case SIValue container: return container.Type;
+            case object obj: return new NETTypeInfo();
+        }
     }
 
-    public static unsafe SIPlusNative.DataContainerHandle MakeData(object? data) {
+    /// <summary>
+    /// Convert a NET object into a native type.
+    /// </summary>
+    /// <param name="data"></param>
+    /// <returns>A handle if conversion is successful, otherwise null.</returns>
+    public static unsafe SIPlusNative.DataContainerHandle? TryToNativeType(object? data) {
         switch(data) {
         case long i: return MakeInt(i);
         case ulong i: return MakeInt(i);
@@ -81,82 +101,50 @@ internal static class Util
         case bool b: return MakeBool(b);
 
         case null: return MakeNull();
-
-        case DataContainer container: {
-            using var type = container.Type.GetNativeTypeInfo();
-
-            var handle = GCHandle.Alloc(container.Value);
-            GlobalStaticStorage.Store(handle);
-
-            return SIPlusNative.siplus_data_make(type.Handle, GCHandle.ToIntPtr(handle), &ObjectDataDeleter);
         }
 
-        case object obj:
-            NativeTypeInfo typeInfo;
-
-            var attr = obj.GetType().GetCustomAttribute<SIPlusTypeAttribute>();
-            if(attr != null) {
-                if(!attr.TypeInfoType.IsAssignableTo(typeof(ITypeInfo))) {
-                    throw new SIPlusException(
-                        $"Type '{attr.TypeInfoType}' from SIPlusType attribute " +
-                        $"on type '{obj.GetType()}' does not inherit from ITypeInfo."
-                    );
-                }
-
-                typeInfo = ((ITypeInfo)Activator.CreateInstance(attr.TypeInfoType)!)
-                            .GetNativeTypeInfo();
-            } else {
-                typeInfo = new NETTypeInfo().GetNativeTypeInfo();
-            }
-
-            try {
-                var handle = GCHandle.Alloc(data);
-                GlobalStaticStorage.Store(handle);
-
-                return SIPlusNative.siplus_data_make(typeInfo.Handle, GCHandle.ToIntPtr(handle), &ObjectDataDeleter);
-            } finally {
-                typeInfo.Dispose();
-            }
-        }
-
-        throw new Exception($"Unsure how to convert {data.GetType().Name}");
+        return null;
     }
 
-    public static unsafe object? FromData(SIPlusNative.DataContainerHandle data) {
+    /// <summary>
+    /// Convert from A DataContainerHandle to a NET object type. Tries
+    /// to convert back to a NET object if not a native type.
+    /// </summary>
+    /// <param name="result"></param>
+    /// <param name="data"></param>
+    /// <returns></returns>
+    public static bool TryFromNativeType(SIPlusNative.DataContainerHandle data, out object? result) {
         if (SIPlusNative.siplus_data_is_bool(data)) {
-            AssertSuccess(SIPlusNative.siplus_data_as_bool(out var result, data));
-            return result;
+            AssertSuccess(SIPlusNative.siplus_data_as_bool(out var bresult, data));
+            result = bresult;
+            return true;
         } else if (SIPlusNative.siplus_data_is_float(data)) {
-            AssertSuccess(SIPlusNative.siplus_data_as_float(out var result, data));
-            return result;
+            AssertSuccess(SIPlusNative.siplus_data_as_float(out var fresult, data));
+            result = fresult;
+            return true;
         } else if (SIPlusNative.siplus_data_is_int(data)) {
-            AssertSuccess(SIPlusNative.siplus_data_as_int(out var result, data));
-            return result;
+            AssertSuccess(SIPlusNative.siplus_data_as_int(out var iresult, data));
+            result = iresult;
+            return true;
         } else if (SIPlusNative.siplus_data_is_string(data)) {
-            AssertSuccess(SIPlusNative.siplus_data_as_string(out var result, data));
-            return result.Value;
+            AssertSuccess(SIPlusNative.siplus_data_as_string(out var sresult, data));
+            result = sresult.Value;
+            return true;
         } else if (SIPlusNative.siplus_data_is_null(data)) {
-            return null;
-        } else if (SIPlusNative.siplus_data_is(data, NETTypeInfo.NativeInstance.Handle)) {
+            result = null;
+            return true;
+        }
+
+        AssertSuccess(SIPlusNative.siplus_data_type(out var type, data));
+        var typeData = SIPlusNative.siplus_type_data_ptr(type);
+        if (typeData != IntPtr.Zero) {
             AssertSuccess(SIPlusNative.siplus_data_ptr(out var ptr, data));
-            return GCHandle.FromIntPtr(ptr).Target;
+            result = GCHandle.FromIntPtr(ptr).Target;
+            return true;
         }
 
-        AssertSuccess(SIPlusNative.siplus_data_type(out var handle, data));
-        var type = new NativeTypeInfo(handle);
-
-        if(type.IsIterable(data)) {
-            AssertSuccess(
-                SIPlusNative.siplus_type_iterate(out var iterator, type.Handle, data)
-            );
-
-            return new IteratorEnumerator(new NativeIterator(iterator))
-                .ToEnumerable()
-                .Cast<object>()
-                .ToList(); //Enumerate once to store since Iterators are only usable one time.
-        }
-
-        throw new NotImplementedException($"Not sure how to convert from {type.Name} back to object.");
+        result = null;
+        return false;
     }
 
     public static IEnumerable ToEnumerable(this IEnumerator enumerator) {

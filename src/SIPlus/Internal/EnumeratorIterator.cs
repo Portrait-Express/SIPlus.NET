@@ -18,8 +18,8 @@ namespace SIPlus.NET.Internal {
             _more = _enumerator.MoveNext();
         }
 
-        public object? Current() {
-            return _last;
+        public SIValue Current() {
+            return new(_last);
         }
 
         public bool More() {

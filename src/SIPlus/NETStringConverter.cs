@@ -6,12 +6,12 @@ namespace SIPlus.NET {
             return from.Name == new NETTypeInfo().Name && to.Name == "string";
         }
 
-        public object? Convert(object? from, ITypeInfo to) {
+        public SIValue Convert(SIValue from, ITypeInfo to) {
             if (to.Name != "string") {
                 throw new Exception($"Cannot convert to type {to.Name}");
             }
 
-            return from?.ToString() ?? "null";
+            return new(from.NetValue?.ToString() ?? "null");
         }
 
         public void Dispose() { }

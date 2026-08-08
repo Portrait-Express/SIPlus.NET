@@ -8,6 +8,6 @@ namespace SIPlus.NET.Internal {
     internal interface IIterator : IDisposable {
         bool More();
         void Next();
-        object? Current();
+        SIValue Current();
     }
 }

@@ -2,6 +2,6 @@
 
 namespace SIPlus.NET {
     public interface ITypeInfoIndexer : IDisposable {
-        object? Index(ParserContext context, object? list, object? index);
+        SIValue Index(ParserContext context, object? list, SIValue index);
     }
 }

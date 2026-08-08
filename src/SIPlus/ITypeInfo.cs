@@ -5,7 +5,7 @@ namespace SIPlus.NET {
         string Name { get; }
 
         bool IsIterable(object? value);
-        object? Access(object? value, string name);
-        IEnumerator Iterate(object? value);
+        SIValue Access(object? value, string name);
+        IEnumerator<SIValue> Iterate(object? value);
     }
 }

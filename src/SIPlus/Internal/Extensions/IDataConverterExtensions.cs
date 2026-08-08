@@ -36,13 +36,15 @@ namespace SIPlus.NET.Internal.Extensions {
                     $"{GCHandle.FromIntPtr(data).Target?.GetType()} was not an {nameof(IDataConverter)}");
             }
 
-            var fromVal = Util.FromData(new SIPlusNative.DataContainerHandle(from, false));
+            var fromVal = new SIValue(new SIPlusNative.DataContainerHandle(from, false));
             var toType = new SIPlusNative.TypeInfoHandle(to).FromNativeType();
 
             try {
-                var handle = Util.MakeData(thisVal.Convert(fromVal, toType));
+                var handle = thisVal.Convert(fromVal, toType).ToNative();
+
                 *result = handle.DangerousGetHandle();
                 handle.DangerousReleaseHandle();
+
                 return (int)SIPlusNative.Errors.SIPLUS_OK;
             } catch (Exception e) {
                 return SIPlusNative.siplus_error_set(

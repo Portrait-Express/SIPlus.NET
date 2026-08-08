@@ -3,16 +3,33 @@ using System.Collections;
 using Xunit;
 
 namespace SIPlus.Test {
-    public class TestTypeInfo {
+    public class TestTypeInfo : IDisposable {
+        private Parser _parser = Util.GetBaseTestingParser();
+
+        public void Dispose() {
+            _parser.Dispose();
+        }
+
         [Fact]
         public void TypeInfo() {
-            using var parser = Util.GetBaseTestingParser();
             var data = new TestData();
 
-            var expr = parser.GetExpression(".Foo");
-            var result = expr.Retrieve(parser.Context().Builder().Default(data).Build());
+            var expr = _parser.GetExpression(".Bar");
+            var result = expr.Retrieve(_parser.Context().Builder().Default(new(data)).Build());
 
-            Assert.Equal(data.Foo, result);
+            object? expected = 2L;
+            object? actual = result.NetValue;
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void TestIdentityTypeInfo() {
+            var data = new TestData();
+
+            var expr = _parser.GetExpression(".");
+            var result = expr.Retrieve(_parser.Context().Builder().Default(new(data)).Build());
+
+            Assert.Equal(data, result.NetValue);
         }
 
         [Fact]
@@ -21,9 +38,9 @@ namespace SIPlus.Test {
             var data = new TestData();
 
             var expr = parser.GetExpression(".[\"2\"]");
-            var result = expr.Retrieve(parser.Context().Builder().Default(data).Build());
+            var result = expr.Retrieve(parser.Context().Builder().Default(new(new TestData())).Build());
 
-            Assert.Equal("2", result);
+            Assert.Equal("2", result.NetValue);
         }
 
         [SIPlusType(typeof(TestingType))]
@@ -39,25 +56,29 @@ namespace SIPlus.Test {
             public TestingType() { }
             public string Name => "TestType";
 
-            public object? Access(object? value, string name) {
+            public SIValue Access(object? value, string name) {
                 if(value is not TestData data) return null;
 
                 switch (name) {
                     case "Foo":
-                        return data.Foo;
+                        return new(data.Foo);
+
+                    case "Bar":
+                        return new(2);
 
                     default:
                         throw new Exception($"No suitable property '{name}'");
                 }
             }
 
-            object? ITypeInfoIndexer.Index(ParserContext context, object? list, object? index) {
+            SIValue ITypeInfoIndexer.Index(ParserContext context, object? list, SIValue index) {
                 return index;
             }
 
             public bool IsIterable(object? value) => false;
-            public IEnumerator Iterate(object? value) => throw new NotImplementedException();
+            public IEnumerator<SIValue> Iterate(object? value) => throw new NotImplementedException();
             public void Dispose() { }
         }
     }
+
 }

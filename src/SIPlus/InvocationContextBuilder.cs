@@ -14,17 +14,17 @@ namespace SIPlus.NET {
             Handle = handle;
         }
 
-        public InvocationContextBuilder Default(object? data) {
+        public InvocationContextBuilder Default(SIValue data) {
             Util.AssertSuccess(
-                SIPlusNative.siplus_icbuilder_default(Handle, Util.MakeData(data))
+                SIPlusNative.siplus_icbuilder_default(Handle, data.ToNative())
             );
 
             return this;
         }
 
-        public InvocationContextBuilder With(string name, object? data) {
+        public InvocationContextBuilder With(string name, SIValue data) {
             Util.AssertSuccess(
-                SIPlusNative.siplus_icbuilder_with(Handle, name, Util.MakeData(data))
+                SIPlusNative.siplus_icbuilder_with(Handle, name, data.ToNative())
             );
 
             return this;

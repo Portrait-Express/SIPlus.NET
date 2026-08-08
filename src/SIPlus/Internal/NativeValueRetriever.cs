@@ -16,11 +16,10 @@ namespace SIPlus.NET.Internal
             Handle = handle;
         }
 
-        public object? Retrieve(InvocationContext context)
+        public SIValue Retrieve(InvocationContext context)
         {
-            int result = SIPlusNative.siplus_value_retrieve(out var data, Handle, context.Handle);
-            Util.AssertSuccess(result);
-            return Util.FromData(data);
+            Util.AssertSuccess(SIPlusNative.siplus_value_retrieve(out var data, Handle, context.Handle));
+            return new(data);
         }
 
         public void Dispose()

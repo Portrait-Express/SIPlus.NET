@@ -1,7 +1,4 @@
-﻿using SIPlus.NET;
-using SIPlus.NET.Internal;
-using System.Collections;
-using System.Runtime.InteropServices;
+﻿using System.Collections;
 
 namespace SIPlus.NET.Internal {
     internal class NativeTypeInfo : ITypeInfo {
@@ -20,34 +17,40 @@ namespace SIPlus.NET.Internal {
             }
         }
 
-        public object? Access(object? value, string name) {
-            var inData = Util.MakeData(value);
-
+        public SIValue Access(object? value, string name) {
             Util.AssertSuccess(
-                SIPlusNative.siplus_type_access(out var outData, Handle, inData, name)
+                SIPlusNative.siplus_type_access(out var outData, Handle, AssertContainerHandle(value), name)
             );
 
-            return Util.FromData(outData);
+            return new(outData);
         }
 
         public bool IsIterable(object? value) {
-            var inData = Util.MakeData(value);
-
             Util.AssertSuccess(
-                SIPlusNative.siplus_type_is_iterable(out var isIterable, Handle, inData)
+                SIPlusNative.siplus_type_is_iterable(out var isIterable, Handle, AssertContainerHandle(value))
             );
 
             return isIterable;
         }
 
-        public IEnumerator Iterate(object? value) {
-            var inData = Util.MakeData(value);
-
+        public IEnumerator<SIValue> Iterate(object? value) {
             Util.AssertSuccess(
-                SIPlusNative.siplus_type_iterate(out var iterator, Handle, inData)
+                SIPlusNative.siplus_type_iterate(out var iterator, Handle, AssertContainerHandle(value))
             );
 
             return new IteratorEnumerator(new NativeIterator(iterator));
+        }
+
+        private SIPlusNative.DataContainerHandle AssertContainerHandle(object? value) {
+            if (value is not SIPlusNative.DataContainerHandle dataHandle) {
+                throw new SIPlusException(
+                    "NativeTypeInfo did not receive a DataContainerHandle. This likely " +
+                    "ocurred by passing an arbitrary object to a SIValue.Type instance. " +
+                    "ITypeInfo functions should only be called directly with objects they " +
+                    "were paired with in a SIValue, unless you directly control the ITypeInfo."
+                );
+            }
+            return dataHandle;
         }
 
         public void Dispose() {

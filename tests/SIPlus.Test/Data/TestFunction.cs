@@ -2,8 +2,8 @@
 
 namespace SIPlus.Test.Data {
     internal class TestFuncValueRetriever : IValueRetriever {
-        public object? Retrieve(InvocationContext value) {
-            return "test";
+        public SIValue Retrieve(InvocationContext value) {
+            return new("test");
         }
 
         public void Dispose() { }

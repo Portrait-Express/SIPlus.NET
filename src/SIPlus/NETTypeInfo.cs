@@ -9,7 +9,7 @@ namespace SIPlus.NET {
 
         public string Name => "System.Object";
 
-        public object? Access(object? value, string name) {
+        public SIValue Access(object? value, string name) {
             if(value == null) {
                 throw new Exception($"Cannot access property '{name}' on null");
             }
@@ -22,30 +22,32 @@ namespace SIPlus.NET {
             }
 
             if(member is FieldInfo field) {
-                return field.GetValue(value);
+                return new(field.GetValue(value));
             } else if(member is PropertyInfo prop) {
-                return prop.GetValue(value);
+                return new(prop.GetValue(value));
             } else {
                 throw new Exception($"Object of type '{type.Name}' has no accessible property '{name}'");
             }
         }
 
-        public object? Index(ParserContext context, object? list, object? index) {
-            if (index != null && list is IDictionary idictionary) {
-                return idictionary[index];
+        public SIValue Index(ParserContext context, object? list, SIValue index) {
+            var indexValue = index.NetValue;
+
+            if (index != null && list is IDictionary idictionary && indexValue != null) {
+                return new(idictionary[indexValue]);
             }
 
-            if(TryIndex(index, out var idx)) {
-                if (list is IList ilist) return ilist[idx];
-                if (list is IEnumerable enumerable) return enumerable.ElementAt(idx);
+            if(TryIndex(indexValue, out var idx)) {
+                if (list is IList ilist) return new(ilist[idx]);
+                if (list is IEnumerable enumerable) return new(enumerable.ElementAt(idx));
             }
 
-            if(index?.GetType() == typeof(string)) {
-                return Access(list, (string)index);
+            if(indexValue?.GetType() == typeof(string)) {
+                return Access(list, (string)indexValue);
             }
 
             throw new InvocationException(
-                $"Cannot use '{index}' to index object of type '{list}'");
+                $"Cannot use '{indexValue}' to index object of type '{list}'");
         }
 
         public bool IsIterable(object? value) {
@@ -60,13 +62,15 @@ namespace SIPlus.NET {
             return false;
         }
 
-        public IEnumerator Iterate(object? value) {
+        public IEnumerator<SIValue> Iterate(object? value) {
             if (value == null) {
                 throw new Exception("null is not iterable");
             }
 
             if (value is IEnumerable enumerable) {
-                return enumerable.GetEnumerator();
+                foreach(var v in enumerable) {
+                    yield return v is SIValue s ? s : new SIValue(v);
+                }
             }
 
             throw new Exception($"{value.GetType().Name} is not iterable");

@@ -36,7 +36,8 @@ namespace SIPlus.NET.Internal.Extensions {
                 string nameStr = Marshal.PtrToStringAnsi(name) ?? 
                     throw new InvalidOperationException("No name passed to 'access'");
 
-                var handle = Util.MakeData(info.Access(data, nameStr));
+                var handle = info.Access(data, nameStr).ToNative();
+
                 *result = handle.DangerousGetHandle();
                 handle.DangerousReleaseHandle();
 
@@ -49,7 +50,7 @@ namespace SIPlus.NET.Internal.Extensions {
         [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
         internal static unsafe int Index(nint* result, nint thisData, nint context, nint value, nint index) {
             var valueobj = GCHandle.FromIntPtr(value).Target;
-            var indexobj = Util.FromData(new(index, false));
+            var indexobj = new SIValue(new(index, false));
 
             if (GCHandle.FromIntPtr(thisData).Target is not ITypeInfoIndexer info) {
                 return SIPlusNative.siplus_error_set(
@@ -59,9 +60,8 @@ namespace SIPlus.NET.Internal.Extensions {
 
             try {
                 var contextHandle = new SIPlusNative.ContextHandle(context, false);
-                var handle = Util.MakeData(
-                    info.Index(new ParserContext(contextHandle), valueobj, indexobj)
-                );
+                var handle = info.Index(new ParserContext(contextHandle), valueobj, indexobj)
+                    .ToNative();
 
                 *result = handle.DangerousGetHandle();
                 handle.DangerousReleaseHandle();

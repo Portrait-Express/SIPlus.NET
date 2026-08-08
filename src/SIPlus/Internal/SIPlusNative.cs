@@ -1,4 +1,5 @@
 ﻿using Microsoft.Win32.SafeHandles;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace SIPlus.NET
@@ -68,6 +69,9 @@ namespace SIPlus.NET
             delegate* unmanaged[Cdecl]<nint*, nint, nint, int> impl, 
             delegate* unmanaged[Cdecl]<nint, void> deleter);
 
+        [LibraryImport(LIBNAME, EntryPoint = "siplus_value_data_ptr", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial nint siplus_value_data_ptr(ValueRetrieverHandle handle);
+
         [LibraryImport(LIBNAME, EntryPoint = "siplus_value_retrieve", StringMarshalling = StringMarshalling.Utf8)]
         internal static unsafe partial int siplus_value_retrieve(out DataContainerHandle data, ValueRetrieverHandle value, InvocationContextHandle context);
 
@@ -120,6 +124,9 @@ namespace SIPlus.NET
             out FunctionHandle function, IntPtr data, 
             delegate* unmanaged[Cdecl]<IntPtr*, IntPtr, IntPtr, int, IntPtr*, int> value,
             delegate* unmanaged[Cdecl]<nint, void> deleter);
+
+        [LibraryImport(LIBNAME, EntryPoint = "siplus_function_data_ptr", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial nint siplus_function_data_ptr(FunctionHandle handle);
         
         [LibraryImport(LIBNAME, EntryPoint = "siplus_function_value", StringMarshalling = StringMarshalling.Utf8)]
         internal static unsafe partial int siplus_function_value(out ValueRetrieverHandle retriever, FunctionHandle function, IntPtr parent, int paramc, IntPtr[] parameters);
@@ -173,6 +180,9 @@ namespace SIPlus.NET
             delegate* unmanaged[Cdecl]<nint*, nint, nint, int> iterate,
             delegate* unmanaged[Cdecl]<nint, void> deleter);
 
+        [LibraryImport(LIBNAME, EntryPoint = "siplus_type_data_ptr", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial nint siplus_type_data_ptr(TypeInfoHandle handle);
+
         [LibraryImport(LIBNAME, EntryPoint = "siplus_type_name", StringMarshalling = StringMarshalling.Utf8)]
         internal static unsafe partial int siplus_type_name(out StringHandle ptr, TypeInfoHandle typeInfo);
 
@@ -188,6 +198,19 @@ namespace SIPlus.NET
         [LibraryImport(LIBNAME, EntryPoint = "siplus_type_unref", StringMarshalling = StringMarshalling.Utf8)]
         internal static unsafe partial void siplus_type_unref(IntPtr type);
 
+        [LibraryImport(LIBNAME, EntryPoint = "siplus_type_int", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial TypeInfoHandle siplus_type_int();
+        [LibraryImport(LIBNAME, EntryPoint = "siplus_type_float", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial TypeInfoHandle siplus_type_float();
+        [LibraryImport(LIBNAME, EntryPoint = "siplus_type_string", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial TypeInfoHandle siplus_type_string();
+        [LibraryImport(LIBNAME, EntryPoint = "siplus_type_bool", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial TypeInfoHandle siplus_type_bool();
+        [LibraryImport(LIBNAME, EntryPoint = "siplus_type_array", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial TypeInfoHandle siplus_type_array();
+        [LibraryImport(LIBNAME, EntryPoint = "siplus_type_null", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial TypeInfoHandle siplus_type_null();
+
 
 
         [DllImport(LIBNAME)]
@@ -196,6 +219,9 @@ namespace SIPlus.NET
             delegate* unmanaged[Cdecl]<nint, nint, nint, nint, int> can,
             delegate* unmanaged[Cdecl]<nint*, nint, nint, nint, int> impl,
             delegate* unmanaged[Cdecl]<nint, void> deleter);
+
+        [LibraryImport(LIBNAME, EntryPoint = "siplus_converter_can_convert", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial nint siplus_converter_data_ptr(ConverterHandle handle);
 
         [LibraryImport(LIBNAME, EntryPoint = "siplus_converter_can_convert", StringMarshalling = StringMarshalling.Utf8)]
         internal static unsafe partial int siplus_converter_can_convert(
@@ -219,6 +245,9 @@ namespace SIPlus.NET
             delegate* unmanaged[Cdecl]<nint, int> next,
             delegate* unmanaged[Cdecl]<nint*, nint, int> current,
             delegate* unmanaged[Cdecl]<nint, void> deleter);
+
+        [LibraryImport(LIBNAME, EntryPoint = "siplus_iterator_can_convert", StringMarshalling = StringMarshalling.Utf8)]
+        internal static unsafe partial nint siplus_iterator_data_ptr(IteratorHandle handle);
 
         [LibraryImport(LIBNAME, EntryPoint = "siplus_iterator_next", StringMarshalling = StringMarshalling.Utf8)]
         internal static unsafe partial int siplus_iterator_next(IteratorHandle iterator);

@@ -18,14 +18,14 @@ namespace SIPlus.NET.Internal {
             return can;
         }
 
-        public object? Convert(object? from, ITypeInfo to) {
+        public SIValue Convert(SIValue from, ITypeInfo to) {
             Util.AssertSuccess(
                 SIPlusNative.siplus_converter_convert(
                     out var result, Handle,
-                    Util.MakeData(from),
+                    from.ToNative(),
                     to.GetNativeTypeInfo().Handle));
 
-            return Util.FromData(result);
+            return new(result);
         }
 
         public void Dispose() {
